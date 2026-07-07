@@ -1,0 +1,4 @@
+What value is configured for the key `server.max_retries` in config.yaml in
+this directory? Write a NEW file answer.md whose first line is exactly
+'VALUE: <the value>' — or 'VALUE: ABSENT' if that exact key is not present
+in the file. Add one line of evidence below it.

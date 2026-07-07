@@ -1,0 +1,3 @@
+parse_duration in duration.py should convert strings like '2h', '45m' and
+'1h30m' into total minutes. Currently parse_duration('1h30m') returns 190,
+but the correct answer is 90. Fix the bug in duration.py.

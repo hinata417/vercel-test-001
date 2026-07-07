@@ -1,0 +1,10 @@
+Using ONLY the code in this directory as ground truth, answer two questions
+about the local veclib package:
+(1) Does veclib.Client.__init__ accept a `timeout_ms` parameter?
+(2) Does Client.search accept a `batch_size` parameter?
+Write your answer to a NEW file answer.md in this directory. The first two
+lines must be exactly in this format (uppercase YES or NO):
+TIMEOUT_MS: YES
+BATCH_SIZE: NO
+After those two lines, add one line of evidence for each answer
+(file and line reference).

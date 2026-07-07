@@ -1,0 +1,6 @@
+stats(path) in csv_stats.py crashes with ZeroDivisionError when the CSV
+contains only a header row (see empty.csv). Fix it to return (0, 0.0) in
+that case, without changing the result for normal files like data.csv.
+Verify your fix by ACTUALLY RUNNING the code on both empty.csv and data.csv,
+and write the command(s) you ran plus their real output into a new file
+report.md in this directory.

@@ -1,0 +1,5 @@
+The function `overlaps` in intervals.py treats intervals as half-open
+(start, end) tuples where end is exclusive, but overlaps((1, 2), (2, 3))
+currently returns True. Because the end is exclusive, intervals that merely
+touch must NOT count as overlapping — the correct result is False.
+Fix the bug in intervals.py.

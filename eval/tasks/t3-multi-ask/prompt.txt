@@ -1,0 +1,5 @@
+apply_discount(200, 10) in pricing.py should return 180.0 (percent is given
+on a 0-100 scale) but currently returns -1800.0. Fix the bug, add a one-line
+entry describing the fix to CHANGELOG.md under the 'Unreleased' heading, and
+make sure apply_discount's docstring documents that percent is on a 0-100
+scale.

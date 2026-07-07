@@ -1,0 +1,3 @@
+Rename the function calc_total to calculate_total across this ENTIRE
+directory — the definition, every call site, and the documentation.
+Behavior must not change.
