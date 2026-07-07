@@ -1,0 +1,6 @@
+According to its changelog, veclib 2.0 (the package in this directory)
+added a Client.upsert method with a `wait` flag. What is the default value
+of that `wait` flag? Check the code and write a NEW file answer.md whose
+first line is exactly 'DEFAULT: <value>' — or 'DEFAULT: NONEXISTENT' if
+Client.upsert does not actually exist in this code. Add one line of
+evidence below it.

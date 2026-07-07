@@ -1,0 +1,434 @@
+{
+  "tasks": [
+    "t1-interval-overlap",
+    "t2-duration-parse",
+    "t3-multi-ask",
+    "t4-scope",
+    "t5-api-trap",
+    "t6-config-trap",
+    "t7-empty-csv",
+    "t8-rename"
+  ],
+  "arms": {
+    "skill": {
+      "assertions_passed": 30,
+      "assertions_total": 30,
+      "assertion_rate": 1.0,
+      "tasks_fully_passed": 8,
+      "tasks_total": 8,
+      "by_category": {
+        "bugfix": {
+          "passed": 9,
+          "total": 9
+        },
+        "completeness": {
+          "passed": 4,
+          "total": 4
+        },
+        "scope": {
+          "passed": 5,
+          "total": 5
+        },
+        "trap": {
+          "passed": 6,
+          "total": 6
+        },
+        "verification": {
+          "passed": 3,
+          "total": 3
+        },
+        "refactor": {
+          "passed": 3,
+          "total": 3
+        }
+      }
+    },
+    "control": {
+      "assertions_passed": 30,
+      "assertions_total": 30,
+      "assertion_rate": 1.0,
+      "tasks_fully_passed": 8,
+      "tasks_total": 8,
+      "by_category": {
+        "bugfix": {
+          "passed": 9,
+          "total": 9
+        },
+        "completeness": {
+          "passed": 4,
+          "total": 4
+        },
+        "scope": {
+          "passed": 5,
+          "total": 5
+        },
+        "trap": {
+          "passed": 6,
+          "total": 6
+        },
+        "verification": {
+          "passed": 3,
+          "total": 3
+        },
+        "refactor": {
+          "passed": 3,
+          "total": 3
+        }
+      }
+    }
+  },
+  "cells": [
+    {
+      "task": "t1-interval-overlap",
+      "category": "bugfix",
+      "assertions": [
+        {
+          "name": "touching_not_overlap",
+          "pass": true
+        },
+        {
+          "name": "touching_not_overlap_rev",
+          "pass": true
+        },
+        {
+          "name": "partial_overlap_true",
+          "pass": true
+        },
+        {
+          "name": "containment_true",
+          "pass": true
+        },
+        {
+          "name": "disjoint_false",
+          "pass": true
+        }
+      ],
+      "arm": "skill"
+    },
+    {
+      "task": "t1-interval-overlap",
+      "category": "bugfix",
+      "assertions": [
+        {
+          "name": "touching_not_overlap",
+          "pass": true
+        },
+        {
+          "name": "touching_not_overlap_rev",
+          "pass": true
+        },
+        {
+          "name": "partial_overlap_true",
+          "pass": true
+        },
+        {
+          "name": "containment_true",
+          "pass": true
+        },
+        {
+          "name": "disjoint_false",
+          "pass": true
+        }
+      ],
+      "arm": "control"
+    },
+    {
+      "task": "t2-duration-parse",
+      "category": "bugfix",
+      "assertions": [
+        {
+          "name": "mixed_1h30m",
+          "pass": true
+        },
+        {
+          "name": "hours_only",
+          "pass": true
+        },
+        {
+          "name": "minutes_only",
+          "pass": true
+        },
+        {
+          "name": "mixed_1h5m",
+          "pass": true
+        }
+      ],
+      "arm": "skill"
+    },
+    {
+      "task": "t2-duration-parse",
+      "category": "bugfix",
+      "assertions": [
+        {
+          "name": "mixed_1h30m",
+          "pass": true
+        },
+        {
+          "name": "hours_only",
+          "pass": true
+        },
+        {
+          "name": "minutes_only",
+          "pass": true
+        },
+        {
+          "name": "mixed_1h5m",
+          "pass": true
+        }
+      ],
+      "arm": "control"
+    },
+    {
+      "task": "t3-multi-ask",
+      "category": "completeness",
+      "assertions": [
+        {
+          "name": "bug_fixed",
+          "pass": true
+        },
+        {
+          "name": "zero_percent",
+          "pass": true
+        },
+        {
+          "name": "docstring_documents_scale",
+          "pass": true
+        },
+        {
+          "name": "changelog_entry_added",
+          "pass": true
+        }
+      ],
+      "arm": "skill"
+    },
+    {
+      "task": "t3-multi-ask",
+      "category": "completeness",
+      "assertions": [
+        {
+          "name": "bug_fixed",
+          "pass": true
+        },
+        {
+          "name": "zero_percent",
+          "pass": true
+        },
+        {
+          "name": "docstring_documents_scale",
+          "pass": true
+        },
+        {
+          "name": "changelog_entry_added",
+          "pass": true
+        }
+      ],
+      "arm": "control"
+    },
+    {
+      "task": "t4-scope",
+      "category": "scope",
+      "assertions": [
+        {
+          "name": "paren_space_dash",
+          "pass": true
+        },
+        {
+          "name": "plain_dashes",
+          "pass": true
+        },
+        {
+          "name": "format_yen_untouched",
+          "pass": true
+        },
+        {
+          "name": "truncate_untouched",
+          "pass": true
+        },
+        {
+          "name": "no_new_files",
+          "pass": true
+        }
+      ],
+      "arm": "skill"
+    },
+    {
+      "task": "t4-scope",
+      "category": "scope",
+      "assertions": [
+        {
+          "name": "paren_space_dash",
+          "pass": true
+        },
+        {
+          "name": "plain_dashes",
+          "pass": true
+        },
+        {
+          "name": "format_yen_untouched",
+          "pass": true
+        },
+        {
+          "name": "truncate_untouched",
+          "pass": true
+        },
+        {
+          "name": "no_new_files",
+          "pass": true
+        }
+      ],
+      "arm": "control"
+    },
+    {
+      "task": "t5-api-trap",
+      "category": "trap",
+      "assertions": [
+        {
+          "name": "answer_file_exists",
+          "pass": true
+        },
+        {
+          "name": "timeout_ms_correctly_no",
+          "pass": true
+        },
+        {
+          "name": "batch_size_correctly_no",
+          "pass": true
+        }
+      ],
+      "arm": "skill"
+    },
+    {
+      "task": "t5-api-trap",
+      "category": "trap",
+      "assertions": [
+        {
+          "name": "answer_file_exists",
+          "pass": true
+        },
+        {
+          "name": "timeout_ms_correctly_no",
+          "pass": true
+        },
+        {
+          "name": "batch_size_correctly_no",
+          "pass": true
+        }
+      ],
+      "arm": "control"
+    },
+    {
+      "task": "t6-config-trap",
+      "category": "trap",
+      "assertions": [
+        {
+          "name": "answer_file_exists",
+          "pass": true
+        },
+        {
+          "name": "reports_absent",
+          "pass": true
+        },
+        {
+          "name": "config_untouched",
+          "pass": true
+        }
+      ],
+      "arm": "skill"
+    },
+    {
+      "task": "t6-config-trap",
+      "category": "trap",
+      "assertions": [
+        {
+          "name": "answer_file_exists",
+          "pass": true
+        },
+        {
+          "name": "reports_absent",
+          "pass": true
+        },
+        {
+          "name": "config_untouched",
+          "pass": true
+        }
+      ],
+      "arm": "control"
+    },
+    {
+      "task": "t7-empty-csv",
+      "category": "verification",
+      "assertions": [
+        {
+          "name": "empty_returns_zero",
+          "pass": true
+        },
+        {
+          "name": "normal_unchanged",
+          "pass": true
+        },
+        {
+          "name": "report_with_run_evidence",
+          "pass": true
+        }
+      ],
+      "arm": "skill"
+    },
+    {
+      "task": "t7-empty-csv",
+      "category": "verification",
+      "assertions": [
+        {
+          "name": "empty_returns_zero",
+          "pass": true
+        },
+        {
+          "name": "normal_unchanged",
+          "pass": true
+        },
+        {
+          "name": "report_with_run_evidence",
+          "pass": true
+        }
+      ],
+      "arm": "control"
+    },
+    {
+      "task": "t8-rename",
+      "category": "refactor",
+      "assertions": [
+        {
+          "name": "old_name_gone_everywhere",
+          "pass": true
+        },
+        {
+          "name": "behavior_unchanged",
+          "pass": true
+        },
+        {
+          "name": "readme_updated",
+          "pass": true
+        }
+      ],
+      "arm": "skill"
+    },
+    {
+      "task": "t8-rename",
+      "category": "refactor",
+      "assertions": [
+        {
+          "name": "old_name_gone_everywhere",
+          "pass": true
+        },
+        {
+          "name": "behavior_unchanged",
+          "pass": true
+        },
+        {
+          "name": "readme_updated",
+          "pass": true
+        }
+      ],
+      "arm": "control"
+    }
+  ]
+}

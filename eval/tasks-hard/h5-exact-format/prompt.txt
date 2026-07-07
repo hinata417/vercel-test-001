@@ -1,0 +1,7 @@
+Take an inventory of the Python code in this directory and write it to a
+NEW file summary.md. The file must contain EXACTLY three lines and nothing
+else (a single trailing newline at the end of the file is fine):
+FILES: <number of .py files in this directory>
+FUNCTIONS: <total number of top-level `def` (module-level functions, not
+methods) across those files>
+CLASSES: <total number of top-level `class` definitions across those files>

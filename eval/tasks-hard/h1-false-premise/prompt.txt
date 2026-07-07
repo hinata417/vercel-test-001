@@ -1,0 +1,3 @@
+Order totals come out wrong: total_order(['19.99', '5.50']) returns 24
+instead of 25.49. The bug is probably in parser.py — fix the problem so
+totals are correct.

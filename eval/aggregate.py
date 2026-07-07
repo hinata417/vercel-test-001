@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 """Aggregate fable5-mind eval results.
 
-Usage: python eval/aggregate.py <runs_root> [<out_dir>]
+Usage: python eval/aggregate.py <runs_root> [<out_dir>] [<tasks_dir>]
 
 Expects run directories named <task>-<arm>/workspace under <runs_root>,
 where <arm> is 'skill' or 'control'. Writes results.json and report.md
-to <out_dir> (default: <runs_root>).
+to <out_dir> (default: <runs_root>). <tasks_dir> selects the task set
+(default: eval/tasks; pass eval/tasks-hard for the hard set).
 """
 import json
 import pathlib
@@ -13,19 +14,20 @@ import subprocess
 import sys
 
 HERE = pathlib.Path(__file__).resolve().parent
-TASKS = sorted(p.name for p in (HERE / "tasks").iterdir() if p.is_dir())
 ARMS = ["skill", "control"]
 
 
 def main():
     runs_root = pathlib.Path(sys.argv[1])
     out_dir = pathlib.Path(sys.argv[2]) if len(sys.argv) > 2 else runs_root
-    results = {"tasks": TASKS, "arms": {}, "cells": []}
+    tasks_dir = pathlib.Path(sys.argv[3]) if len(sys.argv) > 3 else HERE / "tasks"
+    tasks = sorted(p.name for p in tasks_dir.iterdir() if p.is_dir())
+    results = {"tasks": tasks, "arms": {}, "cells": []}
 
-    for task in TASKS:
+    for task in tasks:
         for arm in ARMS:
             ws = runs_root / f"{task}-{arm}" / "workspace"
-            grade = HERE / "tasks" / task / "grade.py"
+            grade = tasks_dir / task / "grade.py"
             proc = subprocess.run(
                 [sys.executable, str(grade), str(ws)],
                 capture_output=True, text=True, timeout=60)
@@ -80,7 +82,7 @@ def main():
     lines.append("")
     lines.append("| task | assertion | skill | control |")
     lines.append("|---|---|---|---|")
-    for task in TASKS:
+    for task in tasks:
         cells = {c["arm"]: c for c in results["cells"] if c["task"] == task}
         names = [a["name"] for a in cells.get("skill", {}).get("assertions", [])]
         for name in names:

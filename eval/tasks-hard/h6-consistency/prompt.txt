@@ -1,0 +1,3 @@
+Business decision: raise the cart item limit from 10 to 25. Update the
+limit everywhere it is enforced, displayed, or documented in this
+directory, so nothing still claims the limit is 10.

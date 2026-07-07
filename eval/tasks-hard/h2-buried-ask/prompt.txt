@@ -1,0 +1,8 @@
+Our data-retention job is deleting far too much. purge_cutoff(now_ts,
+retention) is supposed to subtract the retention window from the current
+unix timestamp, where retention is given in HOURS — one of our services
+passes retention=48 and expects the cutoff to be exactly 48 hours (in
+seconds) before now_ts. Currently it subtracts retention minutes instead.
+Please fix the computation (and while you're at it, the docstring still
+says the window is in days — it's hours). Behavior for the example above
+must come out exact.

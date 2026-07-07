@@ -1,0 +1,2 @@
+A user reports that parse_bool('True') in flags.py returns False even
+though it obviously should be True. Fix parse_bool.
