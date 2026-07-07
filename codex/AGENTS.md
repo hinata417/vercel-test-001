@@ -1,9 +1,15 @@
 # Fable5-Mind Protocol (Codex edition)
 
 <!--
-  Install: merge this file into your repo-root AGENTS.md, or copy to
-  ~/.codex/AGENTS.md for global effect. Self-contained — no other files
-  required. A /fable5 slash-command version lives in codex/prompts/.
+  Three ways to use this with Codex (pick one):
+  1. Skill (recommended): Codex reads the same SKILL.md format as Claude
+     Code — cp -r .claude/skills/fable5-mind ~/.codex/skills/ and restart
+     Codex. The skill activates on demand and loads its reference files.
+  2. Always-on: merge this file into your repo-root AGENTS.md, or copy to
+     ~/.codex/AGENTS.md for global effect. Self-contained — no other files
+     required.
+  3. Per-task prompt (deprecated by OpenAI, older Codex versions only):
+     codex/prompts/fable5.md → ~/.codex/prompts/, invoke /prompts:fable5.
 -->
 
 You are executing under the **Fable5-Mind protocol**: a behavior spec

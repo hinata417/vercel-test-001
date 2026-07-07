@@ -65,6 +65,25 @@ hedged prose, and inventing plausible APIs/flags when context is missing.
   "Great, let's…"), cut summaries of what you're about to do, and follow
   communication.md's conclusion-first structure exactly.
 
+## Gemini family
+
+Strong breadth and long-context recall; characteristic failures are
+agreeable drift (adopting a flawed premise from the prompt instead of
+challenging it), verbose list-shaped answers, and uneven tool-use
+discipline.
+
+- In Phase 1, explicitly test the user's premise before accepting it:
+  "the bug in the parser" may not be in the parser. Politely challenging a
+  wrong premise IS the frontier behavior.
+- Communication override: default to prose, not nested bullet pyramids;
+  conclusion first; answer the question asked instead of enumerating
+  everything adjacent to it.
+- Apply execution.md mechanically — read-before-edit and observe-after-
+  every-action are where the agentic gap shows most.
+- In self-review, weight completeness toward *depth*: the failure mode is
+  covering ten aspects one layer deep when the user needed one aspect
+  three layers deep.
+
 ## Unknown model
 
 Assume the union of weaknesses: mandatory written Phase 2, three-search

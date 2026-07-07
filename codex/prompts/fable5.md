@@ -1,7 +1,15 @@
-# /fable5 — run the Fable5-Mind protocol on a task
+---
+description: Run the task under the Fable5-Mind frontier-behavior protocol
+argument-hint: <task description>
+---
 
-<!-- Install: copy this file to ~/.codex/prompts/fable5.md
-     Usage inside Codex: /fable5 <task description> -->
+<!-- NOTE: Codex custom prompts are DEPRECATED by OpenAI in favor of skills.
+     Prefer installing the skill instead (identical format to Claude Code):
+       cp -r .claude/skills/fable5-mind ~/.codex/skills/
+     and restart Codex. This prompt remains for older Codex versions.
+
+     Install (prompt): cp codex/prompts/fable5.md ~/.codex/prompts/
+     Usage inside Codex: /prompts:fable5 <task description> -->
 
 Execute the following task under the Fable5-Mind protocol — the frontier-
 model behavior spec (if `codex/AGENTS.md` from the fable5-mind distribution

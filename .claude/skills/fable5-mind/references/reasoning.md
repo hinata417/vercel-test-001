@@ -50,6 +50,10 @@ Countermeasure:
 2. Before delivering, re-read the ledger item by item and check each one
    against the actual work. A violated constraint is a Phase 3 failure, not
    a footnote.
+3. **After any context compaction/summarization** (long agentic sessions):
+   assume constraint loss. Re-read the user's original message and rebuild
+   the ledger before continuing — the summary kept the task; it may have
+   dropped the "don't"s.
 
 ## 4. Think longer — but only where it pays
 

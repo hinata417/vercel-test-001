@@ -66,3 +66,10 @@ Score 1–5 each: completeness, evidence-backed correctness, clarity,
 simplicity. Any dimension ≤ 3 → do not deliver; fix the dimension. The
 temptation to deliver with a caveat you could have resolved in two minutes
 is exactly the gap between frontier output and the rest.
+
+## The whole review is internal
+
+Run every check above silently. The final message contains the review's
+*results that matter to the user* (a limitation you found, an unverified
+area) — never the checklist itself. "Calibration check: passed" and
+similar narration in a deliverable is protocol residue; delete it.

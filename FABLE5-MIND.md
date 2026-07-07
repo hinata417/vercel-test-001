@@ -31,11 +31,12 @@ Fable 5 が内部的に行っている作業規律を明文化し、5フェー�
     reasoning.md               # 深い推論: 仮説ツリー・自己一貫性・制約台帳・逆転法
     execution.md               # コーディング規律: 読む→真似る→書く・diff最小化・過剰設計の兆候
     communication.md           # 結論ファーストの報告様式(良い例/悪い例つき)
+    research.md                # 調査・執筆の規律: ソース格付け・引用検証・シンセシス
     self-review.md             # 敵対的セルフレビュー + 捏造API検査(ハルシネーション・ガード)
-    model-adapters.md          # モデル別補正(Opus / Sonnet / Haiku / GPT / 不明)
+    model-adapters.md          # モデル別補正(Opus / Sonnet / Haiku / GPT / Gemini / 不明)
 codex/
   AGENTS.md                    # Codex 用・自己完結版プロトコル(GPT向け補正込み)
-  prompts/fable5.md            # Codex の /fable5 スラッシュコマンド
+  prompts/fable5.md            # Codex の /prompts:fable5 コマンド(旧版向け・非推奨)
 ```
 
 スキル本文は、各モデルの指示追従精度が最も高い英語で記述しています。
@@ -57,20 +58,31 @@ cp -r .claude/skills/fable5-mind ~/.claude/skills/
 
 ### Codex
 
-1. **AGENTS.md 方式(推奨・常時適用)**: `codex/AGENTS.md` の内容を対象リポジトリの
+1. **スキル方式(推奨)**: Codex は Claude Code と同一の SKILL.md フォーマットの
+   スキルを `~/.codex/skills/` から読み込みます。同じスキルフォルダをそのまま
+   コピーし、Codex を再起動してください:
+
+   ```bash
+   mkdir -p ~/.codex/skills && cp -r .claude/skills/fable5-mind ~/.codex/skills/
+   ```
+
+2. **AGENTS.md 方式(常時適用)**: `codex/AGENTS.md` の内容を対象リポジトリの
    ルート `AGENTS.md` にマージするか、グローバル適用なら:
 
    ```bash
    mkdir -p ~/.codex && cp codex/AGENTS.md ~/.codex/AGENTS.md
    ```
 
-2. **スラッシュコマンド方式(タスク単位)**:
+   Codex は `~/.codex/AGENTS.md`(グローバル)→ リポジトリルート → サブ
+   ディレクトリの順に AGENTS.md を重ねて読み込みます。
+
+3. **スラッシュコマンド方式(旧版 Codex 向け・OpenAI が非推奨化済み)**:
 
    ```bash
    mkdir -p ~/.codex/prompts && cp codex/prompts/fable5.md ~/.codex/prompts/
    ```
 
-   Codex 内で `/fable5 <タスク内容>` として起動します。
+   Codex 内で `/prompts:fable5 <タスク内容>` として起動します。
 
 ## 中身の要点
 
@@ -90,11 +102,15 @@ cp -r .claude/skills/fable5-mind ~/.claude/skills/
 **モデル別アダプタ**: Sonnet には「明示的な代替案の書き出し必須・検索3回ルール・
 確信があっても検証実行」、GPT には「早すぎる完了宣言の禁止・diff最小化・捏造
 検査の必須化・ヘッジ口調の削除」、Haiku には「Phase 1 への予算集中・全数値の
-二重導出」など、各系統の典型的失敗モードへの上書き補正を定義しています。
+二重導出」、Gemini には「ユーザーの前提の検証・箇条書きピラミッドの禁止・
+広く浅くではなく深く」など、各系統の典型的失敗モードへの上書き補正を定義して
+います。
 
 ## 効果検証のすすめ
 
 導入効果はプロジェクトごとに A/B で測るのが確実です: 同一タスク集(バグ修正・
 実装・調査)をスキルあり/なしで実行し、アサーション合格率・修正一発率・
-捏造参照の発生数を比較してください。過去の検証ではアサーション合格率で
-明確な差(あり60% vs なし40%、Sonnet)が報告されています。
+捏造参照の発生数を比較してください。参考値として、本スキルの前身にあたる
+同系統プロトコル(fable5-mode)の開発セッションでは、Sonnet でのアサーション
+合格率スキルあり60% vs なし40%という A/B 結果が報告されています(本リポジトリ
+では未再現・未検証)。
