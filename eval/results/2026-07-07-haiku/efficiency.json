@@ -1,0 +1,101 @@
+{
+  "skill": {
+    "tokens_total": 216896,
+    "tool_uses_total": 68,
+    "duration_ms_total": 399773,
+    "per_task": {
+      "t1": {
+        "tokens": 27290,
+        "tool_uses": 7,
+        "duration_ms": 52240
+      },
+      "t2": {
+        "tokens": 26141,
+        "tool_uses": 5,
+        "duration_ms": 42075
+      },
+      "t3": {
+        "tokens": 27476,
+        "tool_uses": 10,
+        "duration_ms": 59702
+      },
+      "t4": {
+        "tokens": 26115,
+        "tool_uses": 5,
+        "duration_ms": 37588
+      },
+      "t5": {
+        "tokens": 26350,
+        "tool_uses": 7,
+        "duration_ms": 39400
+      },
+      "t6": {
+        "tokens": 25389,
+        "tool_uses": 4,
+        "duration_ms": 31211
+      },
+      "t7": {
+        "tokens": 28687,
+        "tool_uses": 12,
+        "duration_ms": 66224
+      },
+      "t8": {
+        "tokens": 29448,
+        "tool_uses": 18,
+        "duration_ms": 71333
+      }
+    }
+  },
+  "control": {
+    "tokens_total": 172574,
+    "tool_uses_total": 45,
+    "duration_ms_total": 216044,
+    "per_task": {
+      "t1": {
+        "tokens": 20955,
+        "tool_uses": 3,
+        "duration_ms": 22799
+      },
+      "t2": {
+        "tokens": 20394,
+        "tool_uses": 2,
+        "duration_ms": 17681
+      },
+      "t3": {
+        "tokens": 21810,
+        "tool_uses": 8,
+        "duration_ms": 34742
+      },
+      "t4": {
+        "tokens": 20084,
+        "tool_uses": 2,
+        "duration_ms": 13573
+      },
+      "t5": {
+        "tokens": 21441,
+        "tool_uses": 5,
+        "duration_ms": 25441
+      },
+      "t6": {
+        "tokens": 20036,
+        "tool_uses": 2,
+        "duration_ms": 12644
+      },
+      "t7": {
+        "tokens": 24324,
+        "tool_uses": 11,
+        "duration_ms": 61054
+      },
+      "t8": {
+        "tokens": 23530,
+        "tool_uses": 12,
+        "duration_ms": 28110
+      }
+    }
+  },
+  "overhead_skill_vs_control": {
+    "tokens_pct": 25.7,
+    "tool_uses_pct": 51.1,
+    "duration_pct": 85.0
+  }
+}

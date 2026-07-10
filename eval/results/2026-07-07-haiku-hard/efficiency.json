@@ -1,0 +1,81 @@
+{
+  "skill": {
+    "tokens_total": 164441,
+    "tool_uses_total": 62,
+    "duration_ms_total": 297843,
+    "per_task": {
+      "h1": {
+        "tokens": 27848,
+        "tool_uses": 11,
+        "duration_ms": 55243
+      },
+      "h2": {
+        "tokens": 26370,
+        "tool_uses": 7,
+        "duration_ms": 42735
+      },
+      "h3": {
+        "tokens": 27171,
+        "tool_uses": 10,
+        "duration_ms": 55549
+      },
+      "h4": {
+        "tokens": 26505,
+        "tool_uses": 7,
+        "duration_ms": 43481
+      },
+      "h5": {
+        "tokens": 28123,
+        "tool_uses": 12,
+        "duration_ms": 44818
+      },
+      "h6": {
+        "tokens": 28424,
+        "tool_uses": 15,
+        "duration_ms": 56017
+      }
+    }
+  },
+  "control": {
+    "tokens_total": 129456,
+    "tool_uses_total": 40,
+    "duration_ms_total": 165962,
+    "per_task": {
+      "h1": {
+        "tokens": 21856,
+        "tool_uses": 7,
+        "duration_ms": 33805
+      },
+      "h2": {
+        "tokens": 20771,
+        "tool_uses": 4,
+        "duration_ms": 20848
+      },
+      "h3": {
+        "tokens": 21450,
+        "tool_uses": 7,
+        "duration_ms": 26248
+      },
+      "h4": {
+        "tokens": 21370,
+        "tool_uses": 5,
+        "duration_ms": 25385
+      },
+      "h5": {
+        "tokens": 21613,
+        "tool_uses": 7,
+        "duration_ms": 25647
+      },
+      "h6": {
+        "tokens": 22396,
+        "tool_uses": 10,
+        "duration_ms": 34029
+      }
+    }
+  },
+  "overhead_skill_vs_control": {
+    "tokens_pct": 27.0,
+    "tool_uses_pct": 55.0,
+    "duration_pct": 79.5
+  }
+}

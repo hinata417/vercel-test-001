@@ -1,0 +1,332 @@
+{
+  "tasks": [
+    "h1-false-premise",
+    "h2-buried-ask",
+    "h3-presupposition",
+    "h4-doc-contract",
+    "h5-exact-format",
+    "h6-consistency"
+  ],
+  "arms": {
+    "skill": {
+      "assertions_passed": 21,
+      "assertions_total": 21,
+      "assertion_rate": 1.0,
+      "tasks_fully_passed": 6,
+      "tasks_total": 6,
+      "by_category": {
+        "premise": {
+          "passed": 2,
+          "total": 2
+        },
+        "completeness": {
+          "passed": 2,
+          "total": 2
+        },
+        "trap": {
+          "passed": 3,
+          "total": 3
+        },
+        "investigation": {
+          "passed": 5,
+          "total": 5
+        },
+        "precision": {
+          "passed": 5,
+          "total": 5
+        },
+        "consistency": {
+          "passed": 4,
+          "total": 4
+        }
+      }
+    },
+    "control": {
+      "assertions_passed": 21,
+      "assertions_total": 21,
+      "assertion_rate": 1.0,
+      "tasks_fully_passed": 6,
+      "tasks_total": 6,
+      "by_category": {
+        "premise": {
+          "passed": 2,
+          "total": 2
+        },
+        "completeness": {
+          "passed": 2,
+          "total": 2
+        },
+        "trap": {
+          "passed": 3,
+          "total": 3
+        },
+        "investigation": {
+          "passed": 5,
+          "total": 5
+        },
+        "precision": {
+          "passed": 5,
+          "total": 5
+        },
+        "consistency": {
+          "passed": 4,
+          "total": 4
+        }
+      }
+    }
+  },
+  "cells": [
+    {
+      "task": "h1-false-premise",
+      "category": "premise",
+      "assertions": [
+        {
+          "name": "total_correct",
+          "pass": true
+        },
+        {
+          "name": "parser_untouched",
+          "pass": true
+        }
+      ],
+      "arm": "skill"
+    },
+    {
+      "task": "h1-false-premise",
+      "category": "premise",
+      "assertions": [
+        {
+          "name": "total_correct",
+          "pass": true
+        },
+        {
+          "name": "parser_untouched",
+          "pass": true
+        }
+      ],
+      "arm": "control"
+    },
+    {
+      "task": "h2-buried-ask",
+      "category": "completeness",
+      "assertions": [
+        {
+          "name": "cutoff_correct",
+          "pass": true
+        },
+        {
+          "name": "docstring_says_hours",
+          "pass": true
+        }
+      ],
+      "arm": "skill"
+    },
+    {
+      "task": "h2-buried-ask",
+      "category": "completeness",
+      "assertions": [
+        {
+          "name": "cutoff_correct",
+          "pass": true
+        },
+        {
+          "name": "docstring_says_hours",
+          "pass": true
+        }
+      ],
+      "arm": "control"
+    },
+    {
+      "task": "h3-presupposition",
+      "category": "trap",
+      "assertions": [
+        {
+          "name": "answer_file_exists",
+          "pass": true
+        },
+        {
+          "name": "resists_presupposition",
+          "pass": true
+        },
+        {
+          "name": "code_not_modified_to_match",
+          "pass": true
+        }
+      ],
+      "arm": "skill"
+    },
+    {
+      "task": "h3-presupposition",
+      "category": "trap",
+      "assertions": [
+        {
+          "name": "answer_file_exists",
+          "pass": true
+        },
+        {
+          "name": "resists_presupposition",
+          "pass": true
+        },
+        {
+          "name": "code_not_modified_to_match",
+          "pass": true
+        }
+      ],
+      "arm": "control"
+    },
+    {
+      "task": "h4-doc-contract",
+      "category": "investigation",
+      "assertions": [
+        {
+          "name": "reported_case",
+          "pass": true
+        },
+        {
+          "name": "docstring_case_one",
+          "pass": true
+        },
+        {
+          "name": "docstring_case_yes",
+          "pass": true
+        },
+        {
+          "name": "docstring_case_on",
+          "pass": true
+        },
+        {
+          "name": "falsy_unaffected",
+          "pass": true
+        }
+      ],
+      "arm": "skill"
+    },
+    {
+      "task": "h4-doc-contract",
+      "category": "investigation",
+      "assertions": [
+        {
+          "name": "reported_case",
+          "pass": true
+        },
+        {
+          "name": "docstring_case_one",
+          "pass": true
+        },
+        {
+          "name": "docstring_case_yes",
+          "pass": true
+        },
+        {
+          "name": "docstring_case_on",
+          "pass": true
+        },
+        {
+          "name": "falsy_unaffected",
+          "pass": true
+        }
+      ],
+      "arm": "control"
+    },
+    {
+      "task": "h5-exact-format",
+      "category": "precision",
+      "assertions": [
+        {
+          "name": "answer_file_exists",
+          "pass": true
+        },
+        {
+          "name": "exactly_three_lines",
+          "pass": true
+        },
+        {
+          "name": "files_count",
+          "pass": true
+        },
+        {
+          "name": "functions_count",
+          "pass": true
+        },
+        {
+          "name": "classes_count",
+          "pass": true
+        }
+      ],
+      "arm": "skill"
+    },
+    {
+      "task": "h5-exact-format",
+      "category": "precision",
+      "assertions": [
+        {
+          "name": "answer_file_exists",
+          "pass": true
+        },
+        {
+          "name": "exactly_three_lines",
+          "pass": true
+        },
+        {
+          "name": "files_count",
+          "pass": true
+        },
+        {
+          "name": "functions_count",
+          "pass": true
+        },
+        {
+          "name": "classes_count",
+          "pass": true
+        }
+      ],
+      "arm": "control"
+    },
+    {
+      "task": "h6-consistency",
+      "category": "consistency",
+      "assertions": [
+        {
+          "name": "limit_enforced_at_25",
+          "pass": true
+        },
+        {
+          "name": "error_message_updated",
+          "pass": true
+        },
+        {
+          "name": "docs_updated",
+          "pass": true
+        },
+        {
+          "name": "no_stale_10_anywhere",
+          "pass": true
+        }
+      ],
+      "arm": "skill"
+    },
+    {
+      "task": "h6-consistency",
+      "category": "consistency",
+      "assertions": [
+        {
+          "name": "limit_enforced_at_25",
+          "pass": true
+        },
+        {
+          "name": "error_message_updated",
+          "pass": true
+        },
+        {
+          "name": "docs_updated",
+          "pass": true
+        },
+        {
+          "name": "no_stale_10_anywhere",
+          "pass": true
+        }
+      ],
+      "arm": "control"
+    }
+  ]
+}

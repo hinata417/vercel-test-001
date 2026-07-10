@@ -38,8 +38,11 @@ models. That is what this skill does.
 
 ## Task-size triage (do this first, every time)
 
-- **S (trivial)** — one-line answer, mechanical edit, rename: run Phase 1
-  and Phase 5 only. Do not ceremonially over-process small things.
+- **S (trivial)** — one-line answer, mechanical edit, rename, or any
+  well-specified self-contained micro-task: run Phase 1 and Phase 5 only.
+  Do not ceremonially over-process small things — measured A/B data (see
+  eval/ in this repo) shows the full protocol adds ~26% tokens and no
+  accuracy on such tasks; S-triage exists to avoid exactly that.
 - **M (standard)** — a bugfix, a feature slice, a researched answer: run all
   five phases.
 - **L (large/risky)** — multi-file change, architecture decision, anything
