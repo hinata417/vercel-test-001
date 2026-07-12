@@ -90,9 +90,7 @@
     to   { transform: scale(1.18) rotate(1.5deg); }
   }
 
-  /* ---------- cabinet ----------
-     rotating conic border runs on transform (GPU-composited),
-     not background-position (per-frame repaint) */
+  /* ---------- cabinet ---------- */
   #cab {
     position: relative;
     width: min(92vw, 400px);
@@ -123,7 +121,6 @@
     padding: clamp(12px, 3vw, 20px);
     overflow: hidden;
   }
-  /* scanlines */
   #cab-inner::after {
     content: "";
     position: absolute;
@@ -239,7 +236,6 @@
     font-size: clamp(24px, 6vw, 32px);
     box-shadow: 0 4px 0 #5c0030, 0 0 18px rgba(255, 46, 151, 0.75);
   }
-  /* pulse via opacity on a pseudo-element (composited), not box-shadow keyframes */
   button.key.eq::after {
     content: "";
     position: absolute;
@@ -257,26 +253,43 @@
   /* ---------- footer ---------- */
   #foot {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    gap: 14px;
+    justify-content: center;
+    gap: 8px 10px;
     font-size: 12px;
-    letter-spacing: 0.25em;
+    letter-spacing: 0.2em;
     color: rgba(217, 212, 255, 0.55);
+    max-width: 92vw;
   }
-  #snd {
+  .chip {
     font-family: var(--head-font);
     font-weight: 900;
-    font-size: 12px;
-    letter-spacing: 0.15em;
-    padding: 6px 14px;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    padding: 6px 12px;
     border-radius: 999px;
-    border: 1px solid rgba(0, 240, 255, 0.5);
-    background: rgba(0, 240, 255, 0.08);
-    color: var(--cyan);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    background: transparent;
+    color: rgba(255, 255, 255, 0.45);
     cursor: pointer;
   }
-  #snd:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
-  #snd.off { border-color: rgba(255,255,255,0.25); color: rgba(255,255,255,0.4); background: transparent; }
+  .chip:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+  .chip.active {
+    border-color: var(--cyan);
+    background: rgba(0, 240, 255, 0.1);
+    color: var(--cyan);
+    text-shadow: 0 0 8px var(--cyan);
+  }
+  .chip.live {
+    border-color: var(--gold);
+    color: var(--gold);
+    background: rgba(255, 211, 77, 0.08);
+  }
+  #snd.chip { border-color: rgba(0, 240, 255, 0.5); color: var(--cyan); background: rgba(0, 240, 255, 0.08); }
+  #snd.chip.off { border-color: rgba(255,255,255,0.25); color: rgba(255,255,255,0.4); background: transparent; }
+  #fxsel { display: flex; gap: 6px; align-items: center; }
+  #fxsel .lbl { font-size: 10px; letter-spacing: 0.2em; color: rgba(217,212,255,0.45); }
 
   /* ---------- overlays ---------- */
   #flash {
@@ -298,6 +311,65 @@
     will-change: opacity;
   }
   #dim.on { opacity: 1; }
+
+  /* ---------- pooled DOM effects (transform/opacity only = compositor)
+     these are the LITE tier's whole particle system, and free extra
+     juice on higher tiers ---------- */
+  #fxdom {
+    position: fixed;
+    inset: 0;
+    z-index: 32;
+    pointer-events: none;
+    overflow: hidden;
+  }
+  #fxdom > div {
+    position: absolute;
+    opacity: 0;
+    will-change: transform, opacity;
+  }
+  .pop {
+    border-radius: 50%;
+    background: radial-gradient(closest-side,
+      rgba(255, 255, 255, 0.95), var(--c, #ff2e97) 30%, transparent 72%);
+  }
+  .pop.go { animation: popfx 0.5s ease-out; }
+  @keyframes popfx {
+    0%   { transform: scale(0.15); opacity: 1; }
+    100% { transform: scale(1); opacity: 0; }
+  }
+  .ring {
+    border-radius: 50%;
+    border: 3px solid var(--c, #00f0ff);
+    box-shadow: 0 0 14px var(--c, #00f0ff), inset 0 0 10px var(--c, #00f0ff);
+  }
+  .ring.go { animation: ringfx 0.55s ease-out; }
+  @keyframes ringfx {
+    0%   { transform: scale(0.12); opacity: 1; }
+    100% { transform: scale(1); opacity: 0; }
+  }
+  .ringin.go { animation: ringinfx 0.5s ease-in; }
+  .ringin {
+    border-radius: 50%;
+    border: 3px solid var(--c, #ffd34d);
+    box-shadow: 0 0 14px var(--c, #ffd34d);
+  }
+  @keyframes ringinfx {
+    0%   { transform: scale(1.6); opacity: 0; }
+    25%  { opacity: 1; }
+    100% { transform: scale(0.08); opacity: 0.9; }
+  }
+  .rays {
+    background: repeating-conic-gradient(from 0deg,
+      var(--c, #ffd34d) 0deg 5deg, transparent 5deg 26deg);
+    -webkit-mask: radial-gradient(closest-side, #000 20%, transparent 72%);
+    mask: radial-gradient(closest-side, #000 20%, transparent 72%);
+    border-radius: 50%;
+  }
+  .rays.go { animation: raysfx 0.6s ease-out; }
+  @keyframes raysfx {
+    0%   { transform: scale(0.2) rotate(0deg); opacity: 1; }
+    100% { transform: scale(1.1) rotate(45deg); opacity: 0; }
+  }
 
   /* giant exploding result */
   #boom {
@@ -404,7 +476,8 @@
 
   @media (prefers-reduced-motion: reduce) {
     #title, #cab::before, button.key.eq::after, #combo.mega,
-    body.alarm #cab, #out.err, #expr.charge { animation: none !important; }
+    body.alarm #cab, #out.err, #expr.charge,
+    .pop.go, .ring.go, .ringin.go, .rays.go { animation: none !important; }
     #out.slam { animation: none; }
     button.key, #out, #dim, #cab.charging { transition: none; }
   }
@@ -449,13 +522,19 @@
   </div>
 
   <div id="foot">
-    <button id="snd" aria-pressed="true">SOUND ON</button>
-    <span>KEYBOARD OK</span>
-    <span id="fxq">FX AUTO</span>
+    <button id="snd" class="chip" aria-pressed="true">SOUND ON</button>
+    <div id="fxsel" role="group" aria-label="演出の派手さ">
+      <span class="lbl">FX</span>
+      <button class="chip" data-mode="auto">AUTO</button>
+      <button class="chip" data-mode="0">ULTRA</button>
+      <button class="chip" data-mode="1">HIGH</button>
+      <button class="chip" data-mode="2">LITE</button>
+    </div>
   </div>
 </div>
 
 <div id="dim"></div>
+<div id="fxdom"></div>
 <canvas id="fx" class="layer"></canvas>
 <div id="cutin"><span>ANSWER!!!</span></div>
 <div id="boom"><div class="num"></div></div>
@@ -466,24 +545,54 @@
   "use strict";
   const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  /* ================= adaptive quality =================
-     tier 0 = HIGH, 1 = MED, 2 = LOW.
-     Frame time is tracked with an EMA; sustained jank drops a tier
-     (fewer particles, lower canvas resolution, no trails).
-     Recovery is deliberately conservative to avoid oscillation. */
-  let tier = 0;
-  const TIER = [
-    { mul: 1.0, cap: 380, dprCap: 1.5, trails: true,  gridH: 14, gridV: 10, label: "FX HIGH" },
-    { mul: 0.5, cap: 200, dprCap: 1.25, trails: true, gridH: 10, gridV: 7,  label: "FX MED" },
-    { mul: 0.28, cap: 110, dprCap: 1.0, trails: false, gridH: 8, gridV: 5,  label: "FX LOW" }
+  /* ================= effect tiers =================
+     0 ULTRA — full canvas particle system, DPR up to 2, everything on
+     1 HIGH  — trimmed canvas particles, DPR 1.5
+     2 LITE  — canvas particles almost off; flash comes from pooled DOM
+               elements animated with transform/opacity only, which the
+               compositor handles off the main thread */
+  const MODES = [
+    { name: "ULTRA", mul: 1.3, cap: 520, dprCap: 2,   trails: true,  gridH: 16, gridV: 12, orbs: 30, bolts: 8, fw: 10, css: false },
+    { name: "HIGH",  mul: 0.7, cap: 260, dprCap: 1.5, trails: true,  gridH: 11, gridV: 7,  orbs: 20, bolts: 4, fw: 5,  css: false },
+    { name: "LITE",  mul: 0.12, cap: 50, dprCap: 1,   trails: false, gridH: 7,  gridV: 4,  orbs: 10, bolts: 1, fw: 4,  css: true }
   ];
-  const fxqEl = document.getElementById("fxq");
-  function q(n) { return Math.max(2, Math.round(n * TIER[tier].mul)); }
-  function setTier(t) {
-    if (t === tier) return;
-    tier = t;
-    fxqEl.textContent = TIER[tier].label;
+  let mode = 1, autoMode = true;
+  const M = () => MODES[mode];
+  function q(n) { return Math.max(2, Math.round(n * M().mul)); }
+
+  function store(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+  function load(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+
+  function detectMode() {
+    const mem = navigator.deviceMemory || 0;
+    const cores = navigator.hardwareConcurrency || 0;
+    if (mem >= 8 || cores >= 10) return 0;
+    if ((mem && mem < 4) || (cores && cores <= 4)) return 2;
+    return 1;
+  }
+
+  const chips = [...document.querySelectorAll("#fxsel .chip")];
+  function updateChips() {
+    for (const c of chips) {
+      const v = c.dataset.mode;
+      c.classList.toggle("active", autoMode ? v === "auto" : v === String(mode));
+      // in AUTO, also show which tier is currently live
+      c.classList.toggle("live", autoMode && v === String(mode));
+    }
+  }
+  function applyMode(m) {
+    mode = Math.max(0, Math.min(2, m));
+    updateChips();
     resize();
+  }
+  for (const c of chips) {
+    c.addEventListener("click", () => {
+      const v = c.dataset.mode;
+      if (v === "auto") { autoMode = true; applyMode(detectMode()); }
+      else { autoMode = false; applyMode(Number(v)); }
+      store("fxmode", v);
+      beep(880, 0.08);
+    });
   }
 
   /* ================= audio ================= */
@@ -583,13 +692,12 @@
   let W = 0, H = 0;
   let bgGrad = null, bgGradHyper = null;
   function resize() {
-    const dpr = Math.min(devicePixelRatio || 1, TIER[tier].dprCap);
+    const dpr = Math.min(devicePixelRatio || 1, M().dprCap);
     W = innerWidth; H = innerHeight;
     for (const c of [bg, fx]) {
       c.width = Math.round(W * dpr); c.height = Math.round(H * dpr);
       c.getContext("2d").setTransform(dpr, 0, 0, dpr, 0, 0);
     }
-    // cache background gradients (creating them per frame is wasteful)
     bgGrad = bctx.createRadialGradient(W / 2, H * 0.45, 0, W / 2, H * 0.45, Math.max(W, H) * 0.75);
     bgGrad.addColorStop(0, "#12063a");
     bgGrad.addColorStop(1, "#050014");
@@ -598,10 +706,8 @@
     bgGradHyper.addColorStop(1, "#050014");
   }
   addEventListener("resize", resize);
-  resize();
 
-  /* ---- pre-rendered glow sprites: replaces per-particle shadowBlur,
-     which is the single most expensive canvas op on mobile GPUs ---- */
+  /* ---- glow sprites (replaces per-particle shadowBlur) ---- */
   const spriteCache = new Map();
   function sprite(color) {
     let s = spriteCache.get(color);
@@ -619,8 +725,34 @@
     return s;
   }
 
+  /* ---- pooled DOM effects ---- */
+  const fxdom = document.getElementById("fxdom");
+  const domPool = { pop: [], ring: [], ringin: [], rays: [] };
+  function domFx(cls, x, y, color, size) {
+    if (reduced) return;
+    let el = domPool[cls].pop();
+    if (!el) {
+      el = document.createElement("div");
+      el.className = cls;
+      el.dataset.cls = cls;
+      el.addEventListener("animationend", () => {
+        el.classList.remove("go");
+        domPool[el.dataset.cls].push(el);
+      });
+      fxdom.appendChild(el);
+    }
+    el.style.setProperty("--c", color);
+    el.style.width = el.style.height = size + "px";
+    el.style.left = (x - size / 2) + "px";
+    el.style.top = (y - size / 2) + "px";
+    // restart the animation even if the element was mid-flight
+    el.classList.remove("go");
+    void el.offsetWidth;
+    el.classList.add("go");
+  }
+
   /* ---- background: grid + orbs + hyperdrive ---- */
-  const orbs = Array.from({ length: 22 }, () => ({
+  const orbs = Array.from({ length: 30 }, () => ({
     x: Math.random() * 2000, y: Math.random() * 2000,
     r: 1 + Math.random() * 2.6,
     vx: (Math.random() - 0.5) * 0.35, vy: (Math.random() - 0.5) * 0.35,
@@ -638,10 +770,9 @@
       hyper *= 0.965;
     } else hyper = 0;
 
-    // perspective floor grid (speeds up in hyperdrive)
     const horizon = H * 0.62;
     if (!reduced) gridT = (gridT + 0.006 + hyper * 0.09) % 1;
-    const GH = TIER[tier].gridH, GV = TIER[tier].gridV;
+    const GH = M().gridH, GV = M().gridV;
     bctx.lineWidth = 1;
     for (let i = 0; i < GH; i++) {
       const p = ((i / GH + gridT) % 1);
@@ -657,9 +788,10 @@
     }
     bctx.stroke();
 
-    // orbs — glow sprites, streaking outward in hyperdrive
     bctx.globalCompositeOperation = "lighter";
-    for (const o of orbs) {
+    const NO = M().orbs;
+    for (let oi = 0; oi < NO; oi++) {
+      const o = orbs[oi];
       if (!reduced) {
         if (hyper > 0.05) {
           const dx = o.x - W / 2, dy = o.y - H / 2;
@@ -699,21 +831,28 @@
   /* ---- fx: particles, waves, texts, lightning ---- */
   const parts = [], waves = [], texts = [], bolts = [];
   const COLORS = ["#ff2e97", "#00f0ff", "#ffd34d", "#7c4dff", "#39ff88", "#ffffff"];
+  function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
   function spawn(p) {
-    if (parts.length >= TIER[tier].cap) return false;
+    if (parts.length >= M().cap) return false;
     parts.push(p);
     return true;
   }
   function burst(x, y, n, power = 5, colors = COLORS, trail = false) {
+    if (M().css) {
+      // LITE: one pooled DOM pop instead of a particle shower
+      domFx("pop", x, y, pick(colors), 90 + power * 12);
+      if (power >= 5) domFx("ring", x, y, pick(colors), 120 + power * 14);
+      return;
+    }
     n = reduced ? Math.min(q(n), 8) : q(n);
-    trail = trail && TIER[tier].trails;
+    trail = trail && M().trails;
     for (let i = 0; i < n; i++) {
       const a = Math.random() * Math.PI * 2, s = (0.3 + Math.random()) * power;
       if (!spawn({
         x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - power * 0.3,
         life: 1, decay: 0.014 + Math.random() * 0.022,
         r: 1.5 + Math.random() * 3,
-        c: colors[Math.floor(Math.random() * colors.length)],
+        c: pick(colors),
         grav: 0.08, trail,
         crackle: trail && Math.random() < 0.2
       })) break;
@@ -721,6 +860,11 @@
   }
   function implode(x, y, n) {
     if (reduced) return;
+    if (M().css) {
+      domFx("ringin", x, y, "#ffd34d", 320);
+      domFx("ringin", x, y, "#00f0ff", 460);
+      return;
+    }
     n = q(n);
     for (let i = 0; i < n; i++) {
       const a = Math.random() * Math.PI * 2;
@@ -732,8 +876,8 @@
         vx: (x - px) / frames, vy: (y - py) / frames,
         life: 1, decay: 1 / frames,
         r: 1.5 + Math.random() * 2.5,
-        c: COLORS[Math.floor(Math.random() * COLORS.length)],
-        grav: 0, trail: TIER[tier].trails
+        c: pick(COLORS),
+        grav: 0, trail: M().trails
       })) break;
     }
   }
@@ -756,7 +900,7 @@
     }
     pts.push([x2, y2]);
     bolts.push({ pts, life: 1, color, w: 2 + Math.random() * 2.5 });
-    if (tier === 0 && Math.random() < 0.7) {
+    if (mode === 0 && Math.random() < 0.7) {
       const bi = 3 + Math.floor(Math.random() * (n - 6));
       const [bx, by] = pts[bi];
       const bpts = [[bx, by]];
@@ -768,9 +912,17 @@
   }
   function firework(x, y) {
     const hue = Math.floor(Math.random() * 360);
-    const cs = [`hsl(${hue},100%,65%)`, `hsl(${(hue + 40) % 360},100%,70%)`, "#ffffff"];
-    burst(x, y, 55, 7.5, cs, true);
-    wave(x, y, cs[0], 240);
+    const c1 = `hsl(${hue},100%,65%)`, c2 = `hsl(${(hue + 40) % 360},100%,70%)`;
+    if (M().css) {
+      // LITE firework: glow pop + expanding rays + ring, zero particles
+      domFx("pop", x, y, c1, 200);
+      domFx("rays", x, y, c2, 280);
+      domFx("ring", x, y, c1, 260);
+      return;
+    }
+    burst(x, y, 55, 7.5, [c1, c2, "#ffffff"], true);
+    wave(x, y, c1, 240);
+    if (mode === 0) domFx("rays", x, y, c2, 300);
   }
   function drawFX() {
     fctx.clearRect(0, 0, W, H);
@@ -813,7 +965,6 @@
       fctx.strokeStyle = w.color; fctx.lineWidth = w.width * w.life + 1;
       fctx.beginPath(); fctx.arc(w.x, w.y, w.r, 0, 7); fctx.stroke();
     }
-    // bolts: two-pass stroke (wide faint halo + thin bright core), no shadowBlur
     for (let i = bolts.length - 1; i >= 0; i--) {
       const b = bolts[i];
       b.life -= 0.07;
@@ -838,7 +989,6 @@
       fctx.globalAlpha = Math.min(1, t.life * 1.6);
       fctx.font = `900 ${t.size}px "Arial Black", sans-serif`;
       fctx.textAlign = "center";
-      // fake glow: dark offset + colored double-draw instead of shadowBlur
       fctx.fillStyle = "rgba(0,0,0,0.55)";
       fctx.fillText(t.msg, t.x + 3, t.y + 3);
       fctx.fillStyle = t.color;
@@ -849,21 +999,20 @@
     fctx.globalAlpha = 1;
   }
 
-  /* ---- main loop with frame-time governor ---- */
-  let lastT = 0, ema = 16.7, frames = 0, lastDrop = 0;
+  /* ---- main loop with frame-time governor (AUTO mode only) ---- */
+  let lastT = 0, ema = 16.7, frames = 0, lastShift = 0;
   function loop(t) {
     const dt = t - lastT; lastT = t;
     if (dt > 0 && dt < 250) ema = ema * 0.94 + dt * 0.06;
     frames++;
-    if (frames % 45 === 0) {
-      if (ema > 25 && tier < 2 && t - lastDrop > 1500) { setTier(tier + 1); lastDrop = t; }
-      else if (ema < 15 && tier > 0 && t - lastDrop > 8000) { setTier(tier - 1); lastDrop = t; }
+    if (autoMode && frames % 45 === 0) {
+      if (ema > 25 && mode < 2 && t - lastShift > 1500) { applyMode(mode + 1); lastShift = t; }
+      else if (ema < 12 && mode > 0 && t - lastShift > 8000) { applyMode(mode - 1); lastShift = t; }
     }
     drawBG();
     drawFX();
     requestAnimationFrame(loop);
   }
-  requestAnimationFrame(loop);
 
   /* ================= screen shake / flash ================= */
   const stage = document.getElementById("stage");
@@ -997,7 +1146,8 @@
         burst(x, y, 18, 5, ["#00f0ff", "#7c4dff", "#ffffff"], true);
         wave(x, y, "#00f0ff", 120);
         const dc = displayCenter();
-        lightning(x, y, dc.x, dc.y, "#8ef2ff");
+        if (M().bolts > 1) lightning(x, y, dc.x, dc.y, "#8ef2ff");
+        else domFx("ring", x, y, "#00f0ff", 140);
         shake(6);
         break;
       }
@@ -1083,18 +1233,27 @@
       shake(46);
       hyper = 1;
 
-      // multi shockwaves
+      // shockwaves: canvas rings + a pooled DOM pop for the core glow
+      domFx("pop", dc.x, dc.y, "#ffffff", 340);
       wave(dc.x, dc.y, "#ffffff", 340, 6);
       setTimeout(() => wave(dc.x, dc.y, "#ff2e97", 420, 5), 90);
       setTimeout(() => wave(dc.x, dc.y, "#00f0ff", 520, 4), 180);
-      setTimeout(() => wave(dc.x, dc.y, "#ffd34d", 640, 3), 280);
+      if (mode === 0) {
+        setTimeout(() => wave(dc.x, dc.y, "#ffd34d", 640, 3), 280);
+        setTimeout(() => wave(dc.x, dc.y, "#7c4dff", 760, 3), 380);
+      }
+      if (M().css) {
+        domFx("ring", dc.x, dc.y, "#ff2e97", 500);
+        setTimeout(() => domFx("ring", dc.x, dc.y, "#00f0ff", 700), 120);
+        domFx("rays", dc.x, dc.y, "#ffd34d", 560);
+      }
 
       // debris blast
-      burst(dc.x, dc.y, 110, 12, COLORS, true);
-      setTimeout(() => burst(dc.x, dc.y, 55, 8, ["#ffd34d", "#ff9e2e", "#ffffff"], true), 140);
+      burst(dc.x, dc.y, 130, 12, COLORS, true);
+      setTimeout(() => burst(dc.x, dc.y, 65, 8, ["#ffd34d", "#ff9e2e", "#ffffff"], true), 140);
 
       // lightning storm onto the display
-      const NB = [6, 4, 3][tier];
+      const NB = M().bolts;
       for (let i = 0; i < NB; i++) {
         setTimeout(() => {
           lightning(Math.random() * W, -20, dc.x + (Math.random() - 0.5) * 120, dc.y, "#aef4ff");
@@ -1122,12 +1281,12 @@
       cutinEl.classList.add("go");
 
       // fireworks barrage
-      const NF = [7, 4, 3][tier];
+      const NF = M().fw;
       for (let i = 0; i < NF; i++) {
         setTimeout(() => firework(
           Math.random() * W * 0.9 + W * 0.05,
           Math.random() * H * 0.55 + H * 0.08
-        ), 150 + i * 160);
+        ), 150 + i * (mode === 0 ? 110 : 160));
       }
       floatText("CALCULATED!!", W / 2, H * 0.2, "#ff2e97", 36);
 
@@ -1143,6 +1302,7 @@
           boomEl.classList.remove("show", "fly");
           outEl.classList.remove("slam"); void outEl.offsetWidth;
           outEl.classList.add("slam");
+          domFx("pop", dc.x, dc.y, "#00f0ff", 220);
           wave(dc.x, dc.y, "#ffffff", 200, 4);
           burst(dc.x, dc.y, 40, 6, COLORS, true);
           flash(0.3);
@@ -1166,10 +1326,11 @@
     flash(0.8, 0.6);
     shake(34);
     hyper = 0.7;
+    domFx("pop", x, y, "#ff2e4d", 300);
     burst(x, y, 80, 10, ["#ff2e4d", "#ff5c00", "#ffd34d", "#ffffff"], true);
     wave(x, y, "#ff2e4d", 380, 5);
     setTimeout(() => wave(x, y, "#ff5c00", 480, 4), 120);
-    const NB = [6, 4, 3][tier];
+    const NB = M().bolts;
     for (let i = 0; i < NB; i++) {
       setTimeout(() => {
         lightning(Math.random() * W, -20, Math.random() * W, H * (0.3 + Math.random() * 0.5), "#ff4d6a");
@@ -1213,11 +1374,21 @@
     press(k, x, y);
   });
 
+  /* ================= boot ================= */
+  const saved = load("fxmode");
+  if (saved === "0" || saved === "1" || saved === "2") {
+    autoMode = false;
+    applyMode(Number(saved));
+  } else {
+    autoMode = true;
+    applyMode(detectMode());
+  }
+  requestAnimationFrame(loop);
   show();
-  /* opening ceremony */
   if (!reduced) {
     setTimeout(() => firework(W / 2, H * 0.28), 450);
     setTimeout(() => firework(W * 0.25, H * 0.35), 800);
+    setTimeout(() => firework(W * 0.75, H * 0.35), 1150);
   }
 })();
 </script>
