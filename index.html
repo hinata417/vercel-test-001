@@ -1072,6 +1072,8 @@
   const cutinText = cutinEl.querySelector("span");
   const OPCHAR = { "+": "+", "-": "−", "*": "×", "/": "÷" };
   let acc = null, op = null, entry = "0", fresh = true, errored = false, busy = false;
+  /* last executed operation, so "=" alone repeats it (1+2=3, "=" → +2 → 5) */
+  let lastOp = null, lastB = null;
 
   function fmt(n) {
     if (!isFinite(n)) return "ERROR";
@@ -1104,6 +1106,7 @@
   }
   function reset() {
     acc = null; op = null; entry = "0"; fresh = true;
+    lastOp = null; lastB = null;
     clearErr(); show();
   }
   function displayCenter() {
@@ -1152,7 +1155,14 @@
         break;
       }
       case k === "=": {
-        if (op === null) {
+        let o, base, b;
+        if (op !== null) {
+          o = op; base = acc;
+          b = fresh ? acc : parseFloat(entry);
+        } else if (lastOp !== null) {
+          // bare "=" repeats the last operation on the current value
+          o = lastOp; base = parseFloat(entry); b = lastB;
+        } else {
           const dc = displayCenter();
           wave(dc.x, dc.y, "#ff2e97", 160);
           burst(x, y, 20, 6);
@@ -1161,12 +1171,13 @@
           beep(700, 0.15, "triangle", 0.1);
           break;
         }
-        const b = fresh ? acc : parseFloat(entry);
-        const r = apply(acc, op, b);
+        const r = apply(base, o, b);
         if (!isFinite(r)) return explodeError(x, y);
+        const isRepeat = op === null;
+        lastOp = o; lastB = b;
         acc = null; op = null; fresh = true;
         hitCombo(x, y);
-        equalExplosion(fmt(r), x, y);
+        equalExplosion(fmt(r), x, y, isRepeat);
         return;
       }
       case k === "C": {
@@ -1199,7 +1210,7 @@
   }
 
   /* ============ THE ULTIMATE RESULT EXPLOSION ============ */
-  function equalExplosion(resStr, x, y) {
+  function equalExplosion(resStr, x, y, isRepeat = false) {
     if (reduced) {
       entry = resStr; show();
       outEl.classList.remove("slam"); void outEl.offsetWidth;
@@ -1211,7 +1222,9 @@
     const dc = displayCenter();
 
     /* --- phase 1: charge (0 – 560ms) --- */
-    exprEl.textContent = "⚡ ENERGY CHARGING ⚡";
+    exprEl.textContent = isRepeat
+      ? `⚡ REPEAT ${OPCHAR[lastOp]} ${fmt(lastB)} ⚡`
+      : "⚡ ENERGY CHARGING ⚡";
     exprEl.classList.add("charge");
     cabEl.classList.add("charging");
     dimEl.classList.add("on");
@@ -1275,7 +1288,7 @@
       boomEl.classList.add("show");
 
       // cut-in banner
-      cutinText.textContent = "ANSWER!!!";
+      cutinText.textContent = isRepeat ? "ONE MORE!!!" : "ANSWER!!!";
       cutinEl.classList.remove("go", "red");
       void cutinEl.offsetWidth;
       cutinEl.classList.add("go");
