@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>無駄にド派手な電卓</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root {
+    --bg0: #050014;
+    --bg1: #0d0230;
+    --magenta: #ff2e97;
+    --cyan: #00f0ff;
+    --gold: #ffd34d;
+    --violet: #7c4dff;
+    --green: #39ff88;
+    --panel: rgba(10, 4, 40, 0.82);
+    --disp-font: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
+    --head-font: "Arial Black", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    background: var(--bg0);
+    overflow: hidden;
+    font-family: var(--head-font);
+    color: #fff;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  canvas.layer {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+  #bg { z-index: 0; }
+  #fx { z-index: 30; pointer-events: none; }
+
+  #stage {
+    position: relative;
+    z-index: 10;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(8px, 2vh, 20px);
+    padding: 12px;
+  }
+
+  /* ---------- header ---------- */
+  #title {
+    font-size: clamp(20px, 4.5vw, 44px);
+    font-weight: 900;
+    letter-spacing: 0.06em;
+    text-align: center;
+    background: linear-gradient(90deg,
+      var(--magenta), var(--gold), var(--cyan), var(--violet), var(--magenta));
+    background-size: 300% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: titleflow 4s linear infinite;
+    filter: drop-shadow(0 0 14px rgba(255, 46, 151, 0.55));
+    text-wrap: balance;
+  }
+  #title small {
+    display: block;
+    font-size: 0.34em;
+    letter-spacing: 0.5em;
+    opacity: 0.9;
+  }
+  @keyframes titleflow { to { background-position: 300% 0; } }
+
+  #combo {
+    min-height: 1.4em;
+    font-size: clamp(14px, 2.4vw, 22px);
+    font-weight: 900;
+    letter-spacing: 0.12em;
+    color: var(--gold);
+    text-shadow: 0 0 12px var(--gold), 0 0 30px var(--magenta);
+    opacity: 0;
+    transform: scale(0.6);
+    transition: opacity 0.15s, transform 0.15s;
+  }
+  #combo.on { opacity: 1; transform: scale(1); }
+  #combo.mega { color: var(--cyan); animation: comboPulse 0.35s infinite alternate; }
+  @keyframes comboPulse {
+    from { transform: scale(1) rotate(-1.5deg); }
+    to   { transform: scale(1.18) rotate(1.5deg); }
+  }
+
+  /* ---------- cabinet ---------- */
+  #cab {
+    position: relative;
+    width: min(92vw, 400px);
+    border-radius: 22px;
+    padding: 3px;
+    background: linear-gradient(120deg,
+      var(--magenta), var(--violet), var(--cyan), var(--gold), var(--magenta));
+    background-size: 400% 400%;
+    animation: rimflow 6s linear infinite;
+    box-shadow:
+      0 0 24px rgba(255, 46, 151, 0.45),
+      0 0 70px rgba(0, 240, 255, 0.25),
+      0 24px 60px rgba(0, 0, 0, 0.7);
+  }
+  @keyframes rimflow { to { background-position: 400% 0; } }
+  #cab-inner {
+    border-radius: 19px;
+    background: var(--panel);
+    backdrop-filter: blur(6px);
+    padding: clamp(12px, 3vw, 20px);
+    position: relative;
+    overflow: hidden;
+  }
+  /* scanlines */
+  #cab-inner::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+      0deg, rgba(255,255,255,0.035) 0 1px, transparent 1px 3px);
+    mix-blend-mode: overlay;
+  }
+
+  /* ---------- display ---------- */
+  #display {
+    position: relative;
+    border-radius: 12px;
+    background: linear-gradient(180deg, #02000d, #0a0524);
+    border: 1px solid rgba(0, 240, 255, 0.35);
+    box-shadow: inset 0 0 26px rgba(0, 240, 255, 0.16);
+    padding: 14px 16px 10px;
+    margin-bottom: clamp(10px, 2.5vw, 16px);
+    min-height: 92px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    overflow: hidden;
+  }
+  #expr {
+    font-family: var(--disp-font);
+    font-size: clamp(12px, 3vw, 15px);
+    color: rgba(0, 240, 255, 0.75);
+    text-align: right;
+    min-height: 1.3em;
+    letter-spacing: 0.08em;
+    white-space: nowrap;
+  }
+  #out {
+    font-family: var(--disp-font);
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+    font-size: clamp(34px, 9vw, 52px);
+    line-height: 1.1;
+    text-align: right;
+    color: #eafffd;
+    text-shadow: 0 0 10px var(--cyan), 0 0 34px rgba(0, 240, 255, 0.6);
+    white-space: nowrap;
+    transition: transform 0.08s;
+  }
+  #out.slam { animation: slam 0.45s cubic-bezier(0.2, 2.4, 0.4, 1); }
+  @keyframes slam {
+    0%   { transform: scale(2.4); filter: blur(6px); opacity: 0; }
+    60%  { transform: scale(0.92); filter: blur(0); opacity: 1; }
+    100% { transform: scale(1); }
+  }
+  #out.err {
+    color: #ff5c7a;
+    text-shadow: 0 0 12px #ff2e4d, 0 0 40px #ff2e4d;
+    animation: glitch 0.09s infinite;
+  }
+  @keyframes glitch {
+    0%   { transform: translate(0, 0) skewX(0); }
+    25%  { transform: translate(-4px, 2px) skewX(-6deg); }
+    50%  { transform: translate(3px, -2px) skewX(4deg); }
+    75%  { transform: translate(-2px, 1px) skewX(-2deg); }
+    100% { transform: translate(0, 0) skewX(0); }
+  }
+
+  /* ---------- keys ---------- */
+  #keys {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: clamp(7px, 1.8vw, 11px);
+  }
+  button.key {
+    font-family: var(--head-font);
+    font-weight: 900;
+    font-size: clamp(18px, 4.8vw, 24px);
+    padding: clamp(12px, 3vw, 17px) 0;
+    border-radius: 12px;
+    border: 1px solid rgba(124, 77, 255, 0.5);
+    background: linear-gradient(180deg, #1a0f45, #100833);
+    color: #d9d4ff;
+    cursor: pointer;
+    position: relative;
+    transition: transform 0.06s, box-shadow 0.12s, filter 0.12s;
+    box-shadow: 0 4px 0 #08031f, 0 0 0 rgba(124, 77, 255, 0);
+    touch-action: manipulation;
+  }
+  button.key:hover { filter: brightness(1.35); box-shadow: 0 4px 0 #08031f, 0 0 18px rgba(124, 77, 255, 0.7); }
+  button.key:active, button.key.pressed { transform: translateY(4px) scale(0.96); box-shadow: 0 0 0 #08031f, 0 0 26px rgba(124, 77, 255, 0.9); }
+  button.key:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+
+  button.key.op {
+    border-color: rgba(0, 240, 255, 0.6);
+    background: linear-gradient(180deg, #003a4d, #00222e);
+    color: var(--cyan);
+    text-shadow: 0 0 8px var(--cyan);
+  }
+  button.key.op:hover { box-shadow: 0 4px 0 #001018, 0 0 18px rgba(0, 240, 255, 0.8); }
+  button.key.util {
+    border-color: rgba(255, 211, 77, 0.55);
+    background: linear-gradient(180deg, #4d3400, #2e1f00);
+    color: var(--gold);
+    text-shadow: 0 0 8px var(--gold);
+  }
+  button.key.eq {
+    grid-row: span 2;
+    border-color: var(--magenta);
+    background: linear-gradient(180deg, #ff2e97, #b3005e);
+    color: #fff;
+    text-shadow: 0 0 10px #fff;
+    font-size: clamp(24px, 6vw, 32px);
+    animation: eqbreathe 1.6s ease-in-out infinite;
+  }
+  @keyframes eqbreathe {
+    0%, 100% { box-shadow: 0 4px 0 #5c0030, 0 0 14px rgba(255, 46, 151, 0.7); }
+    50%      { box-shadow: 0 4px 0 #5c0030, 0 0 34px rgba(255, 46, 151, 1); }
+  }
+  button.key.zero { grid-column: span 2; }
+
+  /* ---------- footer ---------- */
+  #foot {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font-size: 12px;
+    letter-spacing: 0.25em;
+    color: rgba(217, 212, 255, 0.55);
+  }
+  #snd {
+    font-family: var(--head-font);
+    font-weight: 900;
+    font-size: 12px;
+    letter-spacing: 0.15em;
+    padding: 6px 14px;
+    border-radius: 999px;
+    border: 1px solid rgba(0, 240, 255, 0.5);
+    background: rgba(0, 240, 255, 0.08);
+    color: var(--cyan);
+    cursor: pointer;
+  }
+  #snd:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+  #snd.off { border-color: rgba(255,255,255,0.25); color: rgba(255,255,255,0.4); background: transparent; }
+
+  /* screen flash */
+  #flash {
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    pointer-events: none;
+    background: #fff;
+    opacity: 0;
+  }
+
+  body.alarm #cab { animation: alarmshake 0.08s infinite; }
+  body.alarm #fx { filter: hue-rotate(140deg); }
+  @keyframes alarmshake {
+    0% { transform: translate(-5px, 3px); }
+    50% { transform: translate(5px, -3px); }
+    100% { transform: translate(-3px, -2px); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    #title, #cab, button.key.eq, #combo.mega, body.alarm #cab, #out.err { animation: none !important; }
+    #out.slam { animation: none; }
+    button.key, #out { transition: none; }
+  }
+</style>
+
+</head>
+<body>
+<canvas id="bg" class="layer"></canvas>
+
+<div id="stage">
+  <h1 id="title">無駄にド派手な電卓<small>ULTRA FLASHY CALCULATOR</small></h1>
+  <div id="combo" aria-hidden="true"></div>
+
+  <div id="cab">
+    <div id="cab-inner">
+      <div id="display">
+        <div id="expr" aria-hidden="true"></div>
+        <output id="out" aria-live="polite">0</output>
+      </div>
+      <div id="keys">
+        <button class="key util" data-k="C">C</button>
+        <button class="key util" data-k="bs">⌫</button>
+        <button class="key util" data-k="%">%</button>
+        <button class="key op" data-k="/">÷</button>
+        <button class="key" data-k="7">7</button>
+        <button class="key" data-k="8">8</button>
+        <button class="key" data-k="9">9</button>
+        <button class="key op" data-k="*">×</button>
+        <button class="key" data-k="4">4</button>
+        <button class="key" data-k="5">5</button>
+        <button class="key" data-k="6">6</button>
+        <button class="key op" data-k="-">−</button>
+        <button class="key" data-k="1">1</button>
+        <button class="key" data-k="2">2</button>
+        <button class="key" data-k="3">3</button>
+        <button class="key op" data-k="+">+</button>
+        <button class="key zero" data-k="0">0</button>
+        <button class="key" data-k=".">.</button>
+        <button class="key eq" data-k="=">=</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="foot">
+    <button id="snd" aria-pressed="true">SOUND ON</button>
+    <span>KEYBOARD OK</span>
+  </div>
+</div>
+
+<canvas id="fx" class="layer"></canvas>
+<div id="flash"></div>
+
+<script>
+(() => {
+  "use strict";
+  const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* ================= audio ================= */
+  let actx = null, soundOn = true;
+  const sndBtn = document.getElementById("snd");
+  function audio() {
+    if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
+    if (actx.state === "suspended") actx.resume();
+    return actx;
+  }
+  function beep(freq, dur = 0.08, type = "square", vol = 0.12, when = 0) {
+    if (!soundOn) return;
+    try {
+      const a = audio(), t = a.currentTime + when;
+      const o = a.createOscillator(), g = a.createGain();
+      o.type = type; o.frequency.setValueAtTime(freq, t);
+      g.gain.setValueAtTime(vol, t);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(g).connect(a.destination);
+      o.start(t); o.stop(t + dur + 0.02);
+    } catch (e) {}
+  }
+  function chord() {
+    [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => beep(f, 0.5, "sawtooth", 0.09, i * 0.05));
+  }
+  function alarmSnd() {
+    for (let i = 0; i < 5; i++) beep(180 + (i % 2) * 120, 0.14, "sawtooth", 0.14, i * 0.13);
+  }
+  sndBtn.addEventListener("click", () => {
+    soundOn = !soundOn;
+    sndBtn.textContent = soundOn ? "SOUND ON" : "SOUND OFF";
+    sndBtn.classList.toggle("off", !soundOn);
+    sndBtn.setAttribute("aria-pressed", String(soundOn));
+    if (soundOn) beep(880, 0.1);
+  });
+
+  /* ================= background canvas ================= */
+  const bg = document.getElementById("bg"), bctx = bg.getContext("2d");
+  const fx = document.getElementById("fx"), fctx = fx.getContext("2d");
+  let W = 0, H = 0, DPR = 1;
+  function resize() {
+    DPR = Math.min(devicePixelRatio || 1, 2);
+    W = innerWidth; H = innerHeight;
+    for (const c of [bg, fx]) {
+      c.width = W * DPR; c.height = H * DPR;
+      c.getContext("2d").setTransform(DPR, 0, 0, DPR, 0, 0);
+    }
+  }
+  addEventListener("resize", resize);
+  resize();
+
+  const orbs = Array.from({ length: 26 }, () => ({
+    x: Math.random() * 2000, y: Math.random() * 2000,
+    r: 1 + Math.random() * 2.6,
+    vx: (Math.random() - 0.5) * 0.35, vy: (Math.random() - 0.5) * 0.35,
+    hue: [315, 185, 46, 258][Math.floor(Math.random() * 4)]
+  }));
+  let gridT = 0;
+  function drawBG() {
+    bctx.clearRect(0, 0, W, H);
+    const g = bctx.createRadialGradient(W / 2, H * 0.45, 0, W / 2, H * 0.45, Math.max(W, H) * 0.75);
+    g.addColorStop(0, "#12063a");
+    g.addColorStop(1, "#050014");
+    bctx.fillStyle = g;
+    bctx.fillRect(0, 0, W, H);
+
+    // perspective floor grid
+    const horizon = H * 0.62;
+    if (!reduced) gridT = (gridT + 0.006) % 1;
+    bctx.lineWidth = 1;
+    for (let i = 0; i < 14; i++) {
+      const p = ((i / 14 + gridT) % 1);
+      const y = horizon + Math.pow(p, 2.6) * (H - horizon);
+      bctx.strokeStyle = `rgba(255,46,151,${0.05 + p * 0.28})`;
+      bctx.beginPath(); bctx.moveTo(0, y); bctx.lineTo(W, y); bctx.stroke();
+    }
+    for (let i = -10; i <= 10; i++) {
+      bctx.strokeStyle = "rgba(0,240,255,0.10)";
+      bctx.beginPath();
+      bctx.moveTo(W / 2 + i * 40, horizon);
+      bctx.lineTo(W / 2 + i * W * 0.16, H);
+      bctx.stroke();
+    }
+    // orbs
+    for (const o of orbs) {
+      if (!reduced) {
+        o.x += o.vx; o.y += o.vy;
+        if (o.x < -20) o.x = W + 20; if (o.x > W + 20) o.x = -20;
+        if (o.y < -20) o.y = H + 20; if (o.y > H + 20) o.y = -20;
+      } else { o.x %= W; o.y %= H; }
+      bctx.fillStyle = `hsla(${o.hue},100%,65%,0.8)`;
+      bctx.shadowColor = `hsl(${o.hue},100%,60%)`;
+      bctx.shadowBlur = 14;
+      bctx.beginPath(); bctx.arc(o.x % W, o.y % H, o.r, 0, 7); bctx.fill();
+      bctx.shadowBlur = 0;
+    }
+  }
+
+  /* ================= particle fx ================= */
+  const parts = [], waves = [], texts = [];
+  const COLORS = ["#ff2e97", "#00f0ff", "#ffd34d", "#7c4dff", "#39ff88", "#ffffff"];
+  function burst(x, y, n = 24, power = 5, colors = COLORS) {
+    if (reduced) n = Math.min(n, 6);
+    for (let i = 0; i < n; i++) {
+      const a = Math.random() * Math.PI * 2, s = (0.3 + Math.random()) * power;
+      parts.push({
+        x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - power * 0.3,
+        life: 1, decay: 0.012 + Math.random() * 0.02,
+        r: 1.5 + Math.random() * 3,
+        c: colors[Math.floor(Math.random() * colors.length)],
+        grav: 0.08, spark: Math.random() < 0.3
+      });
+    }
+  }
+  function wave(x, y, color = "#00f0ff", max = 160) {
+    waves.push({ x, y, r: 6, max, life: 1, color });
+  }
+  function floatText(msg, x, y, color = "#ffd34d", size = 26) {
+    texts.push({ msg, x, y, vy: -1.4, life: 1, color, size });
+  }
+  function firework(x, y) {
+    const hue = Math.floor(Math.random() * 360);
+    const cs = [`hsl(${hue},100%,65%)`, `hsl(${(hue + 40) % 360},100%,70%)`, "#ffffff"];
+    burst(x, y, reduced ? 10 : 70, 7, cs);
+    wave(x, y, cs[0], 220);
+  }
+  function drawFX() {
+    fctx.clearRect(0, 0, W, H);
+    fctx.globalCompositeOperation = "lighter";
+    for (let i = parts.length - 1; i >= 0; i--) {
+      const p = parts[i];
+      p.x += p.vx; p.y += p.vy; p.vy += p.grav;
+      p.life -= p.decay;
+      if (p.life <= 0) { parts.splice(i, 1); continue; }
+      fctx.globalAlpha = Math.max(p.life, 0);
+      fctx.fillStyle = p.c;
+      fctx.shadowColor = p.c; fctx.shadowBlur = 10;
+      if (p.spark) {
+        fctx.fillRect(p.x - 1, p.y - p.r * 2, 2, p.r * 4);
+      } else {
+        fctx.beginPath(); fctx.arc(p.x, p.y, p.r * p.life, 0, 7); fctx.fill();
+      }
+    }
+    fctx.shadowBlur = 0;
+    for (let i = waves.length - 1; i >= 0; i--) {
+      const w = waves[i];
+      w.r += (w.max - w.r) * 0.14; w.life -= 0.04;
+      if (w.life <= 0) { waves.splice(i, 1); continue; }
+      fctx.globalAlpha = w.life * 0.9;
+      fctx.strokeStyle = w.color; fctx.lineWidth = 3 * w.life + 1;
+      fctx.beginPath(); fctx.arc(w.x, w.y, w.r, 0, 7); fctx.stroke();
+    }
+    fctx.globalCompositeOperation = "source-over";
+    for (let i = texts.length - 1; i >= 0; i--) {
+      const t = texts[i];
+      t.y += t.vy; t.life -= 0.02;
+      if (t.life <= 0) { texts.splice(i, 1); continue; }
+      fctx.globalAlpha = Math.min(1, t.life * 1.6);
+      fctx.font = `900 ${t.size}px "Arial Black", sans-serif`;
+      fctx.textAlign = "center";
+      fctx.fillStyle = t.color;
+      fctx.shadowColor = t.color; fctx.shadowBlur = 16;
+      fctx.fillText(t.msg, t.x, t.y);
+      fctx.shadowBlur = 0;
+    }
+    fctx.globalAlpha = 1;
+  }
+
+  function loop() {
+    drawBG();
+    drawFX();
+    requestAnimationFrame(loop);
+  }
+  loop();
+
+  /* ================= screen shake / flash ================= */
+  const stage = document.getElementById("stage");
+  let shakeAmt = 0;
+  function shake(amt) {
+    if (reduced) return;
+    shakeAmt = Math.max(shakeAmt, amt);
+    (function step() {
+      if (shakeAmt <= 0.4) { stage.style.transform = ""; return; }
+      shakeAmt *= 0.86;
+      stage.style.transform =
+        `translate(${(Math.random() - 0.5) * shakeAmt * 2}px, ${(Math.random() - 0.5) * shakeAmt * 2}px)`;
+      requestAnimationFrame(step);
+    })();
+  }
+  const flashEl = document.getElementById("flash");
+  function flash(op = 0.5) {
+    if (reduced) return;
+    flashEl.style.transition = "none";
+    flashEl.style.opacity = op;
+    requestAnimationFrame(() => {
+      flashEl.style.transition = "opacity 0.4s";
+      flashEl.style.opacity = 0;
+    });
+  }
+
+  /* ================= combo ================= */
+  const comboEl = document.getElementById("combo");
+  let combo = 0, comboTimer = null;
+  const HYPE = ["GOOD!", "GREAT!!", "EXCELLENT!!", "AMAZING!!!", "無駄にド派手!!!", "GODLIKE!!!!"];
+  function hitCombo(x, y) {
+    combo++;
+    clearTimeout(comboTimer);
+    comboTimer = setTimeout(() => { combo = 0; comboEl.classList.remove("on", "mega"); }, 2200);
+    if (combo >= 3) {
+      comboEl.textContent = `${combo} COMBO!!`;
+      comboEl.classList.add("on");
+      comboEl.classList.toggle("mega", combo >= 10);
+      if (combo % 5 === 0) {
+        const msg = HYPE[Math.min(Math.floor(combo / 5) - 1, HYPE.length - 1)];
+        floatText(msg, x, y - 60, "#ffd34d", 30);
+        beep(660 + combo * 20, 0.12, "triangle", 0.1);
+      }
+    }
+  }
+
+  /* ================= calculator core ================= */
+  const outEl = document.getElementById("out");
+  const exprEl = document.getElementById("expr");
+  const OPCHAR = { "+": "+", "-": "−", "*": "×", "/": "÷" };
+  let acc = null, op = null, entry = "0", fresh = true, errored = false;
+
+  function fmt(n) {
+    if (!isFinite(n)) return "ERROR";
+    if (Math.abs(n) >= 1e12 || (Math.abs(n) < 1e-9 && n !== 0)) {
+      return n.toExponential(6).replace(/(\.\d*?)0+e/, "$1e").replace(/\.e/, "e");
+    }
+    let s = String(Math.round(n * 1e10) / 1e10);
+    if (s.replace("-", "").replace(".", "").length > 12) s = n.toPrecision(12);
+    return s.includes(".") ? s.replace(/0+$/, "").replace(/\.$/, "") : s;
+  }
+  function apply(a, o, b) {
+    switch (o) {
+      case "+": return a + b;
+      case "-": return a - b;
+      case "*": return a * b;
+      case "/": return b === 0 ? Infinity : a / b;
+    }
+  }
+  function show() {
+    outEl.textContent = entry;
+    exprEl.textContent = op !== null ? `${fmt(acc)} ${OPCHAR[op]}` : "";
+    const len = entry.length;
+    outEl.style.fontSize = len > 10 ? `clamp(20px, ${Math.max(4, 90 / len)}vw, 36px)` : "";
+  }
+  function clearErr() {
+    if (!errored) return;
+    errored = false;
+    outEl.classList.remove("err");
+    document.body.classList.remove("alarm");
+  }
+  function reset() {
+    acc = null; op = null; entry = "0"; fresh = true;
+    clearErr(); show();
+  }
+
+  function press(k, x, y) {
+    if (errored && k !== "C") { reset(); }
+    switch (true) {
+      case /^[0-9]$/.test(k): {
+        if (fresh) { entry = k; fresh = false; }
+        else if (entry.replace(/[-.]/g, "").length < 12) {
+          entry = entry === "0" ? k : entry + k;
+        }
+        beep(420 + Number(k) * 45, 0.06);
+        burst(x, y, 12, 3.5);
+        shake(3);
+        break;
+      }
+      case k === ".": {
+        if (fresh) { entry = "0."; fresh = false; }
+        else if (!entry.includes(".")) entry += ".";
+        beep(300, 0.06);
+        burst(x, y, 8, 3);
+        break;
+      }
+      case k in OPCHAR: {
+        if (op !== null && !fresh) {
+          const r = apply(acc, op, parseFloat(entry));
+          if (!isFinite(r)) return explode(x, y);
+          acc = r;
+        } else if (acc === null || !fresh || op === null) {
+          if (acc === null || !fresh) acc = parseFloat(entry);
+        }
+        op = k; fresh = true; entry = fmt(acc);
+        beep(220, 0.09, "sawtooth", 0.1);
+        burst(x, y, 18, 4.5, ["#00f0ff", "#7c4dff", "#ffffff"]);
+        wave(x, y, "#00f0ff", 110);
+        shake(5);
+        break;
+      }
+      case k === "=": {
+        if (op === null) { equalFanfare(x, y, false); break; }
+        const b = fresh ? acc : parseFloat(entry);
+        const r = apply(acc, op, b);
+        if (!isFinite(r)) return explode(x, y);
+        entry = fmt(r); acc = null; op = null; fresh = true;
+        equalFanfare(x, y, true);
+        break;
+      }
+      case k === "C": {
+        reset();
+        beep(160, 0.12, "sawtooth", 0.1);
+        wave(x, y, "#ffd34d", 130);
+        burst(x, y, 16, 4, ["#ffd34d", "#ffffff"]);
+        shake(4);
+        break;
+      }
+      case k === "bs": {
+        if (!fresh) {
+          entry = entry.length > 1 ? entry.slice(0, -1) : "0";
+          if (entry === "-") entry = "0";
+        }
+        beep(240, 0.05);
+        burst(x, y, 6, 2.5);
+        break;
+      }
+      case k === "%": {
+        entry = fmt(parseFloat(entry) / 100);
+        fresh = false;
+        beep(520, 0.08, "triangle");
+        wave(x, y, "#ffd34d", 90);
+        break;
+      }
+    }
+    hitCombo(x, y);
+    show();
+  }
+
+  function equalFanfare(x, y, real) {
+    show();
+    outEl.classList.remove("slam");
+    void outEl.offsetWidth;
+    outEl.classList.add("slam");
+    const rect = outEl.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2, cy = rect.top + rect.height / 2;
+    wave(cx, cy, "#ff2e97", 260);
+    wave(x, y, "#ffd34d", 140);
+    burst(cx, cy, real ? 60 : 25, 7);
+    flash(real ? 0.45 : 0.2);
+    shake(real ? 14 : 7);
+    if (real) {
+      chord();
+      floatText("CALCULATED!!", cx, cy - 70, "#ff2e97", 34);
+      const N = reduced ? 2 : 6;
+      for (let i = 0; i < N; i++) {
+        setTimeout(() => firework(
+          Math.random() * W * 0.8 + W * 0.1,
+          Math.random() * H * 0.5 + H * 0.1
+        ), i * 140);
+      }
+    } else beep(700, 0.15, "triangle", 0.1);
+  }
+
+  function explode(x, y) {
+    entry = "ERROR"; acc = null; op = null; fresh = true; errored = true;
+    outEl.textContent = "ERROR";
+    exprEl.textContent = "0で割るな!!";
+    outEl.classList.add("err");
+    document.body.classList.add("alarm");
+    alarmSnd();
+    flash(0.7);
+    shake(24);
+    burst(x, y, 90, 9, ["#ff2e4d", "#ff5c00", "#ffd34d", "#ffffff"]);
+    wave(x, y, "#ff2e4d", 320);
+    floatText("ゼロ除算!!!", W / 2, H * 0.3, "#ff5c7a", 40);
+    setTimeout(() => { document.body.classList.remove("alarm"); }, 1800);
+  }
+
+  /* ================= input ================= */
+  document.getElementById("keys").addEventListener("click", (e) => {
+    const btn = e.target.closest("button.key");
+    if (!btn) return;
+    const r = btn.getBoundingClientRect();
+    press(btn.dataset.k, r.left + r.width / 2, r.top + r.height / 2);
+  });
+
+  const KEYMAP = {
+    Enter: "=", "=": "=", Escape: "C", c: "C", Backspace: "bs",
+    "%": "%", ".": ".", "+": "+", "-": "-", "*": "*", "/": "/",
+  };
+  for (let i = 0; i <= 9; i++) KEYMAP[String(i)] = String(i);
+  addEventListener("keydown", (e) => {
+    const k = KEYMAP[e.key];
+    if (k === undefined) return;
+    e.preventDefault();
+    const btn = document.querySelector(`button.key[data-k="${k}"]`);
+    let x = W / 2, y = H / 2;
+    if (btn) {
+      const r = btn.getBoundingClientRect();
+      x = r.left + r.width / 2; y = r.top + r.height / 2;
+      btn.classList.add("pressed");
+      setTimeout(() => btn.classList.remove("pressed"), 90);
+    }
+    press(k, x, y);
+  });
+
+  show();
+  /* opening: one ceremonial firework */
+  if (!reduced) setTimeout(() => firework(W / 2, H * 0.3), 500);
+})();
+</script>
+
+</body>
+</html>
