@@ -104,8 +104,15 @@
       0 0 24px rgba(255, 46, 151, 0.45),
       0 0 70px rgba(0, 240, 255, 0.25),
       0 24px 60px rgba(0, 0, 0, 0.7);
+    transition: transform 0.1s;
   }
   @keyframes rimflow { to { background-position: 400% 0; } }
+  #cab.charging { animation: rimflow 0.6s linear infinite, cabcharge 0.56s ease-in both; }
+  @keyframes cabcharge {
+    0%   { transform: scale(1); filter: brightness(1); }
+    70%  { transform: scale(0.97); filter: brightness(1.4) saturate(1.5); }
+    100% { transform: scale(0.94); filter: brightness(2) saturate(2); }
+  }
   #cab-inner {
     border-radius: 19px;
     background: var(--panel);
@@ -149,6 +156,12 @@
     letter-spacing: 0.08em;
     white-space: nowrap;
   }
+  #expr.charge {
+    color: var(--gold);
+    text-shadow: 0 0 10px var(--gold);
+    animation: chargeblink 0.1s infinite;
+  }
+  @keyframes chargeblink { 50% { opacity: 0.3; } }
   #out {
     font-family: var(--disp-font);
     font-variant-numeric: tabular-nums;
@@ -257,14 +270,121 @@
   #snd:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
   #snd.off { border-color: rgba(255,255,255,0.25); color: rgba(255,255,255,0.4); background: transparent; }
 
-  /* screen flash */
+  /* ---------- overlays ---------- */
   #flash {
     position: fixed;
     inset: 0;
-    z-index: 40;
+    z-index: 60;
     pointer-events: none;
     background: #fff;
     opacity: 0;
+  }
+  #dim {
+    position: fixed;
+    inset: 0;
+    z-index: 35;
+    pointer-events: none;
+    background: radial-gradient(circle at 50% 55%, transparent 18%, rgba(0, 0, 12, 0.88) 75%);
+    opacity: 0;
+    transition: opacity 0.4s;
+  }
+  #dim.on { opacity: 1; }
+
+  /* giant exploding result */
+  #boom {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    visibility: hidden;
+  }
+  #boom.show { visibility: visible; }
+  #boom .num {
+    font-family: var(--disp-font);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    font-size: clamp(56px, 17vw, 200px);
+    display: flex;
+    white-space: nowrap;
+  }
+  #boom .ch {
+    display: inline-block;
+    color: #fff;
+    text-shadow:
+      0 0 24px var(--gold),
+      0 0 80px var(--magenta),
+      -5px 0 0 rgba(255, 0, 80, 0.85),
+      5px 0 0 rgba(0, 220, 255, 0.85);
+    animation: chpop 0.55s cubic-bezier(0.2, 2.7, 0.3, 1) both;
+  }
+  @keyframes chpop {
+    0% {
+      transform: scale(5) rotate(var(--rot, 0deg)) translateY(-50px);
+      opacity: 0;
+      filter: blur(16px) brightness(3);
+    }
+    55% {
+      transform: scale(0.88) rotate(0deg);
+      opacity: 1;
+      filter: blur(0) brightness(1.6);
+    }
+    100% { transform: scale(1); filter: brightness(1); }
+  }
+  #boom.fly .num {
+    animation: boomfly 0.42s cubic-bezier(0.55, -0.15, 0.8, 0.7) both;
+  }
+  @keyframes boomfly {
+    to {
+      transform: translate(var(--tx, 0px), var(--ty, 0px)) scale(0.1);
+      opacity: 0;
+      filter: blur(4px);
+    }
+  }
+
+  /* diagonal cut-in banner */
+  #cutin {
+    position: fixed;
+    top: 30%;
+    left: -4%;
+    width: 108%;
+    z-index: 48;
+    pointer-events: none;
+    padding: clamp(8px, 1.6vw, 16px) 0;
+    text-align: center;
+    background: linear-gradient(90deg,
+      transparent 0%, rgba(255, 46, 151, 0.92) 18%,
+      rgba(124, 77, 255, 0.92) 82%, transparent 100%);
+    border-top: 2px solid rgba(255, 255, 255, 0.7);
+    border-bottom: 2px solid rgba(255, 255, 255, 0.7);
+    transform: rotate(-5deg) translateX(-130vw);
+    visibility: hidden;
+  }
+  #cutin.red {
+    background: linear-gradient(90deg,
+      transparent 0%, rgba(255, 30, 60, 0.94) 18%,
+      rgba(120, 0, 20, 0.94) 82%, transparent 100%);
+  }
+  #cutin span {
+    font-family: var(--head-font);
+    font-style: italic;
+    font-weight: 900;
+    font-size: clamp(26px, 6.5vw, 62px);
+    letter-spacing: 0.18em;
+    color: #fff;
+    text-shadow: 0 0 18px rgba(255, 255, 255, 0.9), 4px 4px 0 rgba(0, 0, 0, 0.45);
+  }
+  #cutin.go {
+    visibility: visible;
+    animation: cutslide 1.15s cubic-bezier(0.16, 0.9, 0.3, 1) both;
+  }
+  @keyframes cutslide {
+    0%   { transform: rotate(-5deg) translateX(-130vw); }
+    32%  { transform: rotate(-5deg) translateX(0); }
+    68%  { transform: rotate(-5deg) translateX(0); }
+    100% { transform: rotate(-5deg) translateX(130vw); }
   }
 
   body.alarm #cab { animation: alarmshake 0.08s infinite; }
@@ -276,9 +396,10 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    #title, #cab, button.key.eq, #combo.mega, body.alarm #cab, #out.err { animation: none !important; }
+    #title, #cab, #cab.charging, button.key.eq, #combo.mega,
+    body.alarm #cab, #out.err, #expr.charge { animation: none !important; }
     #out.slam { animation: none; }
-    button.key, #out { transition: none; }
+    button.key, #out, #dim { transition: none; }
   }
 </style>
 
@@ -287,7 +408,7 @@
 <canvas id="bg" class="layer"></canvas>
 
 <div id="stage">
-  <h1 id="title">無駄にド派手な電卓<small>ULTRA FLASHY CALCULATOR</small></h1>
+  <h1 id="title">無駄にド派手な電卓<small>ULTIMATE FLASHY CALCULATOR</small></h1>
   <div id="combo" aria-hidden="true"></div>
 
   <div id="cab">
@@ -326,7 +447,10 @@
   </div>
 </div>
 
+<div id="dim"></div>
 <canvas id="fx" class="layer"></canvas>
+<div id="cutin"><span>ANSWER!!!</span></div>
+<div id="boom"><div class="num"></div></div>
 <div id="flash"></div>
 
 <script>
@@ -354,11 +478,70 @@
       o.start(t); o.stop(t + dur + 0.02);
     } catch (e) {}
   }
-  function chord() {
-    [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => beep(f, 0.5, "sawtooth", 0.09, i * 0.05));
+  function chord(delay = 0) {
+    [523.25, 659.25, 783.99, 1046.5, 1318.5].forEach((f, i) =>
+      beep(f, 0.55, "sawtooth", 0.08, delay + i * 0.05));
+  }
+  function riserSnd() {
+    if (!soundOn) return;
+    try {
+      const a = audio(), t = a.currentTime;
+      const o = a.createOscillator(), g = a.createGain();
+      o.type = "sawtooth";
+      o.frequency.setValueAtTime(80, t);
+      o.frequency.exponentialRampToValueAtTime(1200, t + 0.55);
+      g.gain.setValueAtTime(0.001, t);
+      g.gain.exponentialRampToValueAtTime(0.2, t + 0.5);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.62);
+      o.connect(g).connect(a.destination);
+      o.start(t); o.stop(t + 0.65);
+    } catch (e) {}
+  }
+  function boomSnd() {
+    if (!soundOn) return;
+    try {
+      const a = audio(), t = a.currentTime;
+      // white-noise blast
+      const len = Math.floor(a.sampleRate * 1.1);
+      const buf = a.createBuffer(1, len, a.sampleRate);
+      const d = buf.getChannelData(0);
+      for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.4);
+      const src = a.createBufferSource(); src.buffer = buf;
+      const f = a.createBiquadFilter(); f.type = "lowpass";
+      f.frequency.setValueAtTime(9000, t);
+      f.frequency.exponentialRampToValueAtTime(110, t + 1);
+      const g = a.createGain();
+      g.gain.setValueAtTime(0.55, t);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 1.05);
+      src.connect(f).connect(g).connect(a.destination);
+      src.start(t);
+      // sub-bass drop
+      const o = a.createOscillator(); o.type = "sine";
+      o.frequency.setValueAtTime(150, t);
+      o.frequency.exponentialRampToValueAtTime(32, t + 0.7);
+      const g2 = a.createGain();
+      g2.gain.setValueAtTime(0.5, t);
+      g2.gain.exponentialRampToValueAtTime(0.001, t + 0.8);
+      o.connect(g2).connect(a.destination);
+      o.start(t); o.stop(t + 0.85);
+    } catch (e) {}
   }
   function alarmSnd() {
-    for (let i = 0; i < 5; i++) beep(180 + (i % 2) * 120, 0.14, "sawtooth", 0.14, i * 0.13);
+    for (let i = 0; i < 6; i++) beep(180 + (i % 2) * 120, 0.14, "sawtooth", 0.14, i * 0.13);
+  }
+  function zapSnd() {
+    if (!soundOn) return;
+    try {
+      const a = audio(), t = a.currentTime;
+      const o = a.createOscillator(), g = a.createGain();
+      o.type = "square";
+      o.frequency.setValueAtTime(2400, t);
+      o.frequency.exponentialRampToValueAtTime(180, t + 0.12);
+      g.gain.setValueAtTime(0.09, t);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.13);
+      o.connect(g).connect(a.destination);
+      o.start(t); o.stop(t + 0.15);
+    } catch (e) {}
   }
   sndBtn.addEventListener("click", () => {
     soundOn = !soundOn;
@@ -368,7 +551,7 @@
     if (soundOn) beep(880, 0.1);
   });
 
-  /* ================= background canvas ================= */
+  /* ================= canvases ================= */
   const bg = document.getElementById("bg"), bctx = bg.getContext("2d");
   const fx = document.getElementById("fx"), fctx = fx.getContext("2d");
   let W = 0, H = 0, DPR = 1;
@@ -383,58 +566,84 @@
   addEventListener("resize", resize);
   resize();
 
-  const orbs = Array.from({ length: 26 }, () => ({
+  /* ---- background: grid + orbs + hyperdrive ---- */
+  const orbs = Array.from({ length: 30 }, () => ({
     x: Math.random() * 2000, y: Math.random() * 2000,
     r: 1 + Math.random() * 2.6,
     vx: (Math.random() - 0.5) * 0.35, vy: (Math.random() - 0.5) * 0.35,
     hue: [315, 185, 46, 258][Math.floor(Math.random() * 4)]
   }));
-  let gridT = 0;
+  let gridT = 0, hyper = 0;
   function drawBG() {
     bctx.clearRect(0, 0, W, H);
     const g = bctx.createRadialGradient(W / 2, H * 0.45, 0, W / 2, H * 0.45, Math.max(W, H) * 0.75);
-    g.addColorStop(0, "#12063a");
+    g.addColorStop(0, hyper > 0.1 ? "#2a0a5e" : "#12063a");
     g.addColorStop(1, "#050014");
     bctx.fillStyle = g;
     bctx.fillRect(0, 0, W, H);
 
-    // perspective floor grid
+    if (hyper > 0.01) hyper *= 0.965; else hyper = 0;
+
+    // perspective floor grid (speeds up in hyperdrive)
     const horizon = H * 0.62;
-    if (!reduced) gridT = (gridT + 0.006) % 1;
+    if (!reduced) gridT = (gridT + 0.006 + hyper * 0.09) % 1;
     bctx.lineWidth = 1;
     for (let i = 0; i < 14; i++) {
       const p = ((i / 14 + gridT) % 1);
       const y = horizon + Math.pow(p, 2.6) * (H - horizon);
-      bctx.strokeStyle = `rgba(255,46,151,${0.05 + p * 0.28})`;
+      bctx.strokeStyle = `rgba(255,46,151,${0.05 + p * (0.28 + hyper * 0.5)})`;
       bctx.beginPath(); bctx.moveTo(0, y); bctx.lineTo(W, y); bctx.stroke();
     }
     for (let i = -10; i <= 10; i++) {
-      bctx.strokeStyle = "rgba(0,240,255,0.10)";
+      bctx.strokeStyle = `rgba(0,240,255,${0.10 + hyper * 0.25})`;
       bctx.beginPath();
       bctx.moveTo(W / 2 + i * 40, horizon);
       bctx.lineTo(W / 2 + i * W * 0.16, H);
       bctx.stroke();
     }
-    // orbs
+    // orbs — streak outward from center in hyperdrive
     for (const o of orbs) {
       if (!reduced) {
-        o.x += o.vx; o.y += o.vy;
-        if (o.x < -20) o.x = W + 20; if (o.x > W + 20) o.x = -20;
-        if (o.y < -20) o.y = H + 20; if (o.y > H + 20) o.y = -20;
+        if (hyper > 0.05) {
+          const dx = o.x - W / 2, dy = o.y - H / 2;
+          const dist = Math.hypot(dx, dy) || 1;
+          o.x += (dx / dist) * hyper * 26;
+          o.y += (dy / dist) * hyper * 26;
+          if (o.x < -30 || o.x > W + 30 || o.y < -30 || o.y > H + 30) {
+            o.x = W / 2 + (Math.random() - 0.5) * 200;
+            o.y = H / 2 + (Math.random() - 0.5) * 200;
+          }
+        } else {
+          o.x += o.vx; o.y += o.vy;
+          if (o.x < -20) o.x = W + 20; if (o.x > W + 20) o.x = -20;
+          if (o.y < -20) o.y = H + 20; if (o.y > H + 20) o.y = -20;
+        }
       } else { o.x %= W; o.y %= H; }
+      const ox = o.x % W, oy = o.y % H;
       bctx.fillStyle = `hsla(${o.hue},100%,65%,0.8)`;
       bctx.shadowColor = `hsl(${o.hue},100%,60%)`;
       bctx.shadowBlur = 14;
-      bctx.beginPath(); bctx.arc(o.x % W, o.y % H, o.r, 0, 7); bctx.fill();
+      if (hyper > 0.05) {
+        const dx = ox - W / 2, dy = oy - H / 2;
+        const dist = Math.hypot(dx, dy) || 1;
+        bctx.strokeStyle = `hsla(${o.hue},100%,70%,0.85)`;
+        bctx.lineWidth = o.r;
+        bctx.beginPath();
+        bctx.moveTo(ox, oy);
+        bctx.lineTo(ox - (dx / dist) * hyper * 60, oy - (dy / dist) * hyper * 60);
+        bctx.stroke();
+      } else {
+        bctx.beginPath(); bctx.arc(ox, oy, o.r, 0, 7); bctx.fill();
+      }
       bctx.shadowBlur = 0;
     }
   }
 
-  /* ================= particle fx ================= */
-  const parts = [], waves = [], texts = [];
+  /* ---- fx: particles, waves, texts, lightning ---- */
+  const parts = [], waves = [], texts = [], bolts = [];
   const COLORS = ["#ff2e97", "#00f0ff", "#ffd34d", "#7c4dff", "#39ff88", "#ffffff"];
-  function burst(x, y, n = 24, power = 5, colors = COLORS) {
-    if (reduced) n = Math.min(n, 6);
+  function burst(x, y, n = 24, power = 5, colors = COLORS, trail = false) {
+    if (reduced) n = Math.min(n, 8);
     for (let i = 0; i < n; i++) {
       const a = Math.random() * Math.PI * 2, s = (0.3 + Math.random()) * power;
       parts.push({
@@ -442,21 +651,63 @@
         life: 1, decay: 0.012 + Math.random() * 0.02,
         r: 1.5 + Math.random() * 3,
         c: colors[Math.floor(Math.random() * colors.length)],
-        grav: 0.08, spark: Math.random() < 0.3
+        grav: 0.08, spark: Math.random() < 0.3, trail,
+        crackle: trail && Math.random() < 0.25
       });
     }
   }
-  function wave(x, y, color = "#00f0ff", max = 160) {
-    waves.push({ x, y, r: 6, max, life: 1, color });
+  function implode(x, y, n = 70) {
+    if (reduced) return;
+    for (let i = 0; i < n; i++) {
+      const a = Math.random() * Math.PI * 2;
+      const dist = 140 + Math.random() * 220;
+      const px = x + Math.cos(a) * dist, py = y + Math.sin(a) * dist;
+      const frames = 26 + Math.random() * 14;
+      parts.push({
+        x: px, y: py,
+        vx: (x - px) / frames, vy: (y - py) / frames,
+        life: 1, decay: 1 / frames,
+        r: 1.5 + Math.random() * 2.5,
+        c: COLORS[Math.floor(Math.random() * COLORS.length)],
+        grav: 0, spark: false, trail: true
+      });
+    }
+  }
+  function wave(x, y, color = "#00f0ff", max = 160, width = 3) {
+    waves.push({ x, y, r: 6, max, life: 1, color, width });
   }
   function floatText(msg, x, y, color = "#ffd34d", size = 26) {
     texts.push({ msg, x, y, vy: -1.4, life: 1, color, size });
   }
+  function lightning(x1, y1, x2, y2, color = "#aef4ff") {
+    if (reduced) return;
+    const pts = [[x1, y1]];
+    const n = 14;
+    for (let i = 1; i < n; i++) {
+      const t = i / n;
+      pts.push([
+        x1 + (x2 - x1) * t + (Math.random() - 0.5) * 70,
+        y1 + (y2 - y1) * t + (Math.random() - 0.5) * 70
+      ]);
+    }
+    pts.push([x2, y2]);
+    bolts.push({ pts, life: 1, color, w: 2 + Math.random() * 2.5 });
+    // short branch
+    if (Math.random() < 0.7) {
+      const bi = 3 + Math.floor(Math.random() * (n - 6));
+      const [bx, by] = pts[bi];
+      const bpts = [[bx, by]];
+      for (let j = 1; j <= 5; j++) {
+        bpts.push([bx + (Math.random() - 0.5) * 120, by + j * 26 + (Math.random() - 0.5) * 40]);
+      }
+      bolts.push({ pts: bpts, life: 0.8, color, w: 1.4 });
+    }
+  }
   function firework(x, y) {
     const hue = Math.floor(Math.random() * 360);
     const cs = [`hsl(${hue},100%,65%)`, `hsl(${(hue + 40) % 360},100%,70%)`, "#ffffff"];
-    burst(x, y, reduced ? 10 : 70, 7, cs);
-    wave(x, y, cs[0], 220);
+    burst(x, y, reduced ? 10 : 90, 7.5, cs, true);
+    wave(x, y, cs[0], 240);
   }
   function drawFX() {
     fctx.clearRect(0, 0, W, H);
@@ -466,10 +717,30 @@
       p.x += p.vx; p.y += p.vy; p.vy += p.grav;
       p.life -= p.decay;
       if (p.life <= 0) { parts.splice(i, 1); continue; }
+      // crackle: fireworks embers split into mini-sparks
+      if (p.crackle && p.life < 0.45 && Math.random() < 0.08) {
+        for (let j = 0; j < 3; j++) {
+          const a = Math.random() * Math.PI * 2;
+          parts.push({
+            x: p.x, y: p.y,
+            vx: Math.cos(a) * 2, vy: Math.sin(a) * 2,
+            life: 0.5, decay: 0.045, r: 1, c: "#ffffff",
+            grav: 0.05, spark: false, trail: false
+          });
+        }
+        p.crackle = false;
+      }
       fctx.globalAlpha = Math.max(p.life, 0);
       fctx.fillStyle = p.c;
       fctx.shadowColor = p.c; fctx.shadowBlur = 10;
-      if (p.spark) {
+      if (p.trail) {
+        fctx.strokeStyle = p.c;
+        fctx.lineWidth = p.r * p.life;
+        fctx.beginPath();
+        fctx.moveTo(p.x - p.vx * 3, p.y - p.vy * 3);
+        fctx.lineTo(p.x, p.y);
+        fctx.stroke();
+      } else if (p.spark) {
         fctx.fillRect(p.x - 1, p.y - p.r * 2, 2, p.r * 4);
       } else {
         fctx.beginPath(); fctx.arc(p.x, p.y, p.r * p.life, 0, 7); fctx.fill();
@@ -481,8 +752,22 @@
       w.r += (w.max - w.r) * 0.14; w.life -= 0.04;
       if (w.life <= 0) { waves.splice(i, 1); continue; }
       fctx.globalAlpha = w.life * 0.9;
-      fctx.strokeStyle = w.color; fctx.lineWidth = 3 * w.life + 1;
+      fctx.strokeStyle = w.color; fctx.lineWidth = w.width * w.life + 1;
       fctx.beginPath(); fctx.arc(w.x, w.y, w.r, 0, 7); fctx.stroke();
+    }
+    for (let i = bolts.length - 1; i >= 0; i--) {
+      const b = bolts[i];
+      b.life -= 0.07;
+      if (b.life <= 0) { bolts.splice(i, 1); continue; }
+      fctx.globalAlpha = b.life;
+      fctx.strokeStyle = b.color;
+      fctx.shadowColor = b.color; fctx.shadowBlur = 18;
+      fctx.lineWidth = b.w * b.life + 0.5;
+      fctx.beginPath();
+      fctx.moveTo(b.pts[0][0], b.pts[0][1]);
+      for (let j = 1; j < b.pts.length; j++) fctx.lineTo(b.pts[j][0], b.pts[j][1]);
+      fctx.stroke();
+      fctx.shadowBlur = 0;
     }
     fctx.globalCompositeOperation = "source-over";
     for (let i = texts.length - 1; i >= 0; i--) {
@@ -509,25 +794,27 @@
 
   /* ================= screen shake / flash ================= */
   const stage = document.getElementById("stage");
-  let shakeAmt = 0;
+  let shakeAmt = 0, shaking = false;
   function shake(amt) {
     if (reduced) return;
     shakeAmt = Math.max(shakeAmt, amt);
+    if (shaking) return;
+    shaking = true;
     (function step() {
-      if (shakeAmt <= 0.4) { stage.style.transform = ""; return; }
-      shakeAmt *= 0.86;
+      if (shakeAmt <= 0.4) { stage.style.transform = ""; shaking = false; return; }
+      shakeAmt *= 0.88;
       stage.style.transform =
         `translate(${(Math.random() - 0.5) * shakeAmt * 2}px, ${(Math.random() - 0.5) * shakeAmt * 2}px)`;
       requestAnimationFrame(step);
     })();
   }
   const flashEl = document.getElementById("flash");
-  function flash(op = 0.5) {
+  function flash(op = 0.5, dur = 0.4) {
     if (reduced) return;
     flashEl.style.transition = "none";
     flashEl.style.opacity = op;
     requestAnimationFrame(() => {
-      flashEl.style.transition = "opacity 0.4s";
+      flashEl.style.transition = `opacity ${dur}s`;
       flashEl.style.opacity = 0;
     });
   }
@@ -555,8 +842,14 @@
   /* ================= calculator core ================= */
   const outEl = document.getElementById("out");
   const exprEl = document.getElementById("expr");
+  const cabEl = document.getElementById("cab");
+  const dimEl = document.getElementById("dim");
+  const boomEl = document.getElementById("boom");
+  const boomNum = boomEl.querySelector(".num");
+  const cutinEl = document.getElementById("cutin");
+  const cutinText = cutinEl.querySelector("span");
   const OPCHAR = { "+": "+", "-": "−", "*": "×", "/": "÷" };
-  let acc = null, op = null, entry = "0", fresh = true, errored = false;
+  let acc = null, op = null, entry = "0", fresh = true, errored = false, busy = false;
 
   function fmt(n) {
     if (!isFinite(n)) return "ERROR";
@@ -591,8 +884,13 @@
     acc = null; op = null; entry = "0"; fresh = true;
     clearErr(); show();
   }
+  function displayCenter() {
+    const r = document.getElementById("display").getBoundingClientRect();
+    return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+  }
 
   function press(k, x, y) {
+    if (busy) return;
     if (errored && k !== "C") { reset(); }
     switch (true) {
       case /^[0-9]$/.test(k): {
@@ -601,7 +899,7 @@
           entry = entry === "0" ? k : entry + k;
         }
         beep(420 + Number(k) * 45, 0.06);
-        burst(x, y, 12, 3.5);
+        burst(x, y, 16, 4, COLORS, true);
         shake(3);
         break;
       }
@@ -615,26 +913,38 @@
       case k in OPCHAR: {
         if (op !== null && !fresh) {
           const r = apply(acc, op, parseFloat(entry));
-          if (!isFinite(r)) return explode(x, y);
+          if (!isFinite(r)) return explodeError(x, y);
           acc = r;
-        } else if (acc === null || !fresh || op === null) {
-          if (acc === null || !fresh) acc = parseFloat(entry);
+        } else if (acc === null || !fresh) {
+          acc = parseFloat(entry);
         }
         op = k; fresh = true; entry = fmt(acc);
         beep(220, 0.09, "sawtooth", 0.1);
-        burst(x, y, 18, 4.5, ["#00f0ff", "#7c4dff", "#ffffff"]);
-        wave(x, y, "#00f0ff", 110);
-        shake(5);
+        zapSnd();
+        burst(x, y, 22, 5, ["#00f0ff", "#7c4dff", "#ffffff"], true);
+        wave(x, y, "#00f0ff", 120);
+        const dc = displayCenter();
+        lightning(x, y, dc.x, dc.y, "#8ef2ff");
+        shake(6);
         break;
       }
       case k === "=": {
-        if (op === null) { equalFanfare(x, y, false); break; }
+        if (op === null) {
+          const dc = displayCenter();
+          wave(dc.x, dc.y, "#ff2e97", 160);
+          burst(x, y, 25, 6);
+          flash(0.2);
+          shake(7);
+          beep(700, 0.15, "triangle", 0.1);
+          break;
+        }
         const b = fresh ? acc : parseFloat(entry);
         const r = apply(acc, op, b);
-        if (!isFinite(r)) return explode(x, y);
-        entry = fmt(r); acc = null; op = null; fresh = true;
-        equalFanfare(x, y, true);
-        break;
+        if (!isFinite(r)) return explodeError(x, y);
+        acc = null; op = null; fresh = true;
+        hitCombo(x, y);
+        equalExplosion(fmt(r), x, y);
+        return;
       }
       case k === "C": {
         reset();
@@ -665,43 +975,137 @@
     show();
   }
 
-  function equalFanfare(x, y, real) {
-    show();
-    outEl.classList.remove("slam");
-    void outEl.offsetWidth;
-    outEl.classList.add("slam");
-    const rect = outEl.getBoundingClientRect();
-    const cx = rect.left + rect.width / 2, cy = rect.top + rect.height / 2;
-    wave(cx, cy, "#ff2e97", 260);
-    wave(x, y, "#ffd34d", 140);
-    burst(cx, cy, real ? 60 : 25, 7);
-    flash(real ? 0.45 : 0.2);
-    shake(real ? 14 : 7);
-    if (real) {
+  /* ============ THE ULTIMATE RESULT EXPLOSION ============ */
+  function equalExplosion(resStr, x, y) {
+    if (reduced) {
+      entry = resStr; show();
+      outEl.classList.remove("slam"); void outEl.offsetWidth;
+      outEl.classList.add("slam");
       chord();
-      floatText("CALCULATED!!", cx, cy - 70, "#ff2e97", 34);
-      const N = reduced ? 2 : 6;
-      for (let i = 0; i < N; i++) {
-        setTimeout(() => firework(
-          Math.random() * W * 0.8 + W * 0.1,
-          Math.random() * H * 0.5 + H * 0.1
-        ), i * 140);
+      return;
+    }
+    busy = true;
+    const dc = displayCenter();
+
+    /* --- phase 1: charge (0 – 560ms) --- */
+    exprEl.textContent = "⚡ ENERGY CHARGING ⚡";
+    exprEl.classList.add("charge");
+    cabEl.classList.add("charging");
+    dimEl.classList.add("on");
+    riserSnd();
+    implode(dc.x, dc.y, 80);
+    setTimeout(() => implode(dc.x, dc.y, 60), 220);
+    wave(x, y, "#ffd34d", 60, 2);
+
+    /* --- phase 2: detonation (560ms) --- */
+    setTimeout(() => {
+      entry = resStr;
+      show();
+      exprEl.classList.remove("charge");
+      cabEl.classList.remove("charging");
+
+      boomSnd();
+      chord(0.25);
+      flash(0.95, 0.55);
+      shake(46);
+      hyper = 1;
+
+      // multi shockwaves
+      wave(dc.x, dc.y, "#ffffff", 340, 6);
+      setTimeout(() => wave(dc.x, dc.y, "#ff2e97", 420, 5), 90);
+      setTimeout(() => wave(dc.x, dc.y, "#00f0ff", 520, 4), 180);
+      setTimeout(() => wave(dc.x, dc.y, "#ffd34d", 640, 3), 280);
+
+      // debris blast
+      burst(dc.x, dc.y, 240, 12, COLORS, true);
+      setTimeout(() => burst(dc.x, dc.y, 120, 8, ["#ffd34d", "#ff9e2e", "#ffffff"], true), 140);
+
+      // lightning storm onto the display
+      for (let i = 0; i < 7; i++) {
+        setTimeout(() => {
+          lightning(Math.random() * W, -20, dc.x + (Math.random() - 0.5) * 120, dc.y, "#aef4ff");
+          zapSnd();
+        }, i * 70);
       }
-    } else beep(700, 0.15, "triangle", 0.1);
+
+      // giant exploding result across the screen
+      boomNum.innerHTML = "";
+      [...resStr].forEach((ch, i) => {
+        const s = document.createElement("span");
+        s.className = "ch";
+        s.textContent = ch;
+        s.style.animationDelay = `${i * 45}ms`;
+        s.style.setProperty("--rot", `${(Math.random() - 0.5) * 60}deg`);
+        boomNum.appendChild(s);
+      });
+      boomEl.classList.remove("fly");
+      boomEl.classList.add("show");
+
+      // cut-in banner
+      cutinText.textContent = "ANSWER!!!";
+      cutinEl.classList.remove("go", "red");
+      void cutinEl.offsetWidth;
+      cutinEl.classList.add("go");
+
+      // fireworks barrage
+      for (let i = 0; i < 10; i++) {
+        setTimeout(() => firework(
+          Math.random() * W * 0.9 + W * 0.05,
+          Math.random() * H * 0.55 + H * 0.08
+        ), 150 + i * 120);
+      }
+      floatText("CALCULATED!!", W / 2, H * 0.2, "#ff2e97", 36);
+
+      /* --- phase 3: result flies into the display (≈1150ms later) --- */
+      setTimeout(() => {
+        const br = boomNum.getBoundingClientRect();
+        const bcx = br.left + br.width / 2, bcy = br.top + br.height / 2;
+        boomNum.style.setProperty("--tx", `${dc.x - bcx}px`);
+        boomNum.style.setProperty("--ty", `${dc.y - bcy}px`);
+        boomEl.classList.add("fly");
+        dimEl.classList.remove("on");
+        setTimeout(() => {
+          boomEl.classList.remove("show", "fly");
+          outEl.classList.remove("slam"); void outEl.offsetWidth;
+          outEl.classList.add("slam");
+          wave(dc.x, dc.y, "#ffffff", 200, 4);
+          burst(dc.x, dc.y, 60, 6, COLORS, true);
+          flash(0.3);
+          shake(14);
+          beep(1046.5, 0.2, "triangle", 0.12);
+          busy = false;
+        }, 400);
+      }, 1150);
+    }, 560);
   }
 
-  function explode(x, y) {
+  /* ============ division-by-zero catastrophe ============ */
+  function explodeError(x, y) {
     entry = "ERROR"; acc = null; op = null; fresh = true; errored = true;
     outEl.textContent = "ERROR";
     exprEl.textContent = "0で割るな!!";
     outEl.classList.add("err");
     document.body.classList.add("alarm");
     alarmSnd();
-    flash(0.7);
-    shake(24);
-    burst(x, y, 90, 9, ["#ff2e4d", "#ff5c00", "#ffd34d", "#ffffff"]);
-    wave(x, y, "#ff2e4d", 320);
-    floatText("ゼロ除算!!!", W / 2, H * 0.3, "#ff5c7a", 40);
+    boomSnd();
+    flash(0.8, 0.6);
+    shake(34);
+    hyper = 0.7;
+    burst(x, y, 150, 10, ["#ff2e4d", "#ff5c00", "#ffd34d", "#ffffff"], true);
+    wave(x, y, "#ff2e4d", 380, 5);
+    setTimeout(() => wave(x, y, "#ff5c00", 480, 4), 120);
+    for (let i = 0; i < 8; i++) {
+      setTimeout(() => {
+        lightning(Math.random() * W, -20, Math.random() * W, H * (0.3 + Math.random() * 0.5), "#ff4d6a");
+        zapSnd();
+      }, i * 90);
+    }
+    cutinText.textContent = "ゼロ除算!!!";
+    cutinEl.classList.remove("go");
+    cutinEl.classList.add("red");
+    void cutinEl.offsetWidth;
+    cutinEl.classList.add("go");
+    floatText("DIVISION BY ZERO", W / 2, H * 0.24, "#ff5c7a", 30);
     setTimeout(() => { document.body.classList.remove("alarm"); }, 1800);
   }
 
@@ -714,7 +1118,7 @@
   });
 
   const KEYMAP = {
-    Enter: "=", "=": "=", Escape: "C", c: "C", Backspace: "bs",
+    Enter: "=", "=": "=", Escape: "C", c: "C", C: "C", Backspace: "bs",
     "%": "%", ".": ".", "+": "+", "-": "-", "*": "*", "/": "/",
   };
   for (let i = 0; i <= 9; i++) KEYMAP[String(i)] = String(i);
@@ -734,8 +1138,12 @@
   });
 
   show();
-  /* opening: one ceremonial firework */
-  if (!reduced) setTimeout(() => firework(W / 2, H * 0.3), 500);
+  /* opening ceremony */
+  if (!reduced) {
+    setTimeout(() => firework(W / 2, H * 0.28), 450);
+    setTimeout(() => firework(W * 0.25, H * 0.35), 750);
+    setTimeout(() => firework(W * 0.75, H * 0.35), 1050);
+  }
 })();
 </script>
 
